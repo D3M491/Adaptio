@@ -23,24 +23,26 @@ const styles = StyleSheet.create({
   container: {
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-around",
     overflow: "scroll",
-    gap: "1px",
-    marginHorizontal: "1px",
+    gap: "20",
+    marginLeft: "20",
+    // marginHorizontal: "30",
   },
 
   day: {
     display: "flex",
-    border: `1px solid ${colors.tertiary}`,
-    borderRadius: "1px",
+    borderColor: colors.tertiary,
+    borderWidth: "1",
+    borderRadius: "10%",
     color: colors.secondary,
-    width: "5px",
-    height: "5px",
+    width: "70",
+    height: "70",
     textAlign: "center",
     justifyContent: "center",
   },
 
   text: {
-    fontSize: "1.2rem",
+    fontSize: "16",
+    color: colors.secondary,
   },
 });
