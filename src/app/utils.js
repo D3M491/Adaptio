@@ -1,5 +1,9 @@
+import { getLocales } from "expo-localization";
+
 //Calculate 7 days from today
 export default function week() {
+  const lang = getLocales()[0].languageTag;
+
   const days = [];
   const today = new Date();
 
@@ -10,15 +14,15 @@ export default function week() {
   }
 
   const week = days.map((day) => {
-    const date = day.toLocaleDateString(navigator.language, {
-      day: "2-digit",
-      weekday: "short",
-    });
+    const dayName = day.getDate();
+    const dayNumber = day.getDate();
 
     return {
-      key: day.toLocaleDateString(),
-      day: date,
+      key: Math.random(),
+      dayNumber: dayNumber,
+      dayName: dayName,
     };
   });
+
   return week;
 }

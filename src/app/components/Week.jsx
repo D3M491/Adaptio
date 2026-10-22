@@ -8,11 +8,10 @@ import week from "../utils";
 export default function Week() {
   const weeks = week().map((day) => {
     return (
-      <View style={styles.day} key={day.key}>
-        <Pressable style={styles.day__name}>
-          <Text>{day.day}</Text>
-        </Pressable>
-      </View>
+      <Pressable key={day.key} style={styles.day}>
+        <Text style={styles.text}>{day.dayNumber}</Text>
+        <Text style={styles.text}>{day.dayName}</Text>
+      </Pressable>
     );
   });
 
@@ -25,18 +24,23 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-around",
+    overflow: "scroll",
+    gap: "1px",
+    marginHorizontal: "1px",
   },
 
   day: {
+    display: "flex",
     border: `1px solid ${colors.tertiary}`,
-    borderRadius: ".5rem",
+    borderRadius: "1px",
     color: colors.secondary,
+    width: "5px",
+    height: "5px",
+    textAlign: "center",
+    justifyContent: "center",
   },
 
-  day__name: {
-    display: "flex",
-    flexDirection: "column",
-    width: "3rem",
-    height: "3rem",
+  text: {
+    fontSize: "1.2rem",
   },
 });
