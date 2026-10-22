@@ -9,7 +9,9 @@ export default function Week() {
   const weeks = week().map((day) => {
     return (
       <View style={styles.day} key={day.key}>
-        <Pressable style={styles.day__name}>{day.day}</Pressable>
+        <Pressable style={styles.day__name}>
+          <Text>{day.day}</Text>
+        </Pressable>
       </View>
     );
   });
