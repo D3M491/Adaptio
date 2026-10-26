@@ -9,14 +9,17 @@ import week from "../utils";
 export default function Week({ ref }) {
   //Crea un button per ogni giorno della settimana
   const weeks = week().map((day) => {
-    //Todo Make only one condition
-    const isActiveDay = day.key === day.today ? styles.activeDay : undefined;
-    const isActiveText = day.key === day.today ? styles.activeText : undefined;
+    const isActiveDay = day.key === day.today;
+
+    const textStyles = [styles.text, isActiveDay && styles.activeText];
 
     return (
-      <Pressable key={day.key} style={[styles.day, isActiveDay]}>
-        <Text style={[styles.text, isActiveText]}>{day.dayNumber}</Text>
-        <Text style={[styles.text, isActiveText]}>{day.dayName}</Text>
+      <Pressable
+        key={day.key}
+        style={[styles.day, isActiveDay && styles.activeDay]}
+      >
+        <Text style={textStyles}>{day.dayNumber}</Text>
+        <Text style={textStyles}>{day.dayName}</Text>
       </Pressable>
     );
   });
@@ -33,7 +36,7 @@ const styles = StyleSheet.create({
   weeksContainer: {
     display: "flex",
     flexDirection: "row",
-    gap: 10,
+    gap: 5,
   },
 
   day: {
