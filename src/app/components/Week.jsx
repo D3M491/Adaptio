@@ -2,9 +2,9 @@ import { View } from "react-native";
 import { Pressable } from "react-native";
 import { Text } from "react-native";
 import { StyleSheet } from "react-native";
-import { colors } from "../theme";
+import { colors } from "../../theme";
 import { ScrollView } from "react-native";
-import week from "../utils";
+import week from "../../utils";
 
 export default function Week({ ref }) {
   //Crea un button per ogni giorno della settimana
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 
   text: {
     fontSize: 18,
-    color: `${colors.secondary}45`,
+    color: colors.secondaryDark,
   },
 
   activeText: {

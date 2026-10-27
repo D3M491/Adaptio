@@ -1,12 +1,11 @@
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../theme";
+import { colors } from "../../theme";
 import { useRef, useEffect } from "react";
 import Week from "../components/Week";
 import Header from "../components/Header";
 
 export default function Tab() {
-  console.log("root");
   const scrollRef = useRef();
 
   //Eseguito una volta al montaggio del component
@@ -28,7 +27,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     height: "100%",
     paddingTop: 20,
-    display: "flex",
     gap: 20,
   },
 });

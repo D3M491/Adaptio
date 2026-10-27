@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { Settings2 } from "lucide-react-native";
-import { colors } from "../theme";
+import { colors } from "../../theme";
 import { StyleSheet } from "react-native";
 
 export default function Header() {
@@ -16,8 +16,6 @@ export default function Header() {
 }
 
 const styles = StyleSheet.create({
-  header: {},
-
   icon: {
     marginLeft: "auto",
   },
