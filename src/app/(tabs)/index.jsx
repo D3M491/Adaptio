@@ -1,9 +1,9 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../theme";
 import { useRef, useEffect } from "react";
 import Week from "../components/Week";
-import Header from "../components/Header";
+import Workout from "../components/Workout";
 
 export default function Tab() {
   const scrollRef = useRef();
@@ -16,8 +16,9 @@ export default function Tab() {
 
   return (
     <SafeAreaView style={styles.body}>
-      <Header></Header>
       <Week ref={scrollRef}></Week>
+      <Text style={styles.title}>Bentornato , Manuel</Text>
+      <Workout></Workout>
     </SafeAreaView>
   );
 }
@@ -25,8 +26,13 @@ export default function Tab() {
 const styles = StyleSheet.create({
   body: {
     backgroundColor: colors.primary,
-    height: "100%",
     paddingTop: 20,
+    paddingHorizontal: 20,
     gap: 20,
+  },
+
+  title: {
+    color: colors.secondary,
+    fontSize: 24,
   },
 });

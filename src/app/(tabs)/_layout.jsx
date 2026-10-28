@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { House, PersonStanding, Cog } from "lucide-react-native";
 import { colors } from "../../theme";
+import { Dumbbell } from "lucide-react-native";
 
 export default function TabLayout() {
   return (
@@ -8,11 +9,11 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.tertiary,
         tabBarInactiveTintColor: colors.secondary,
-        tabBarActiveBackgroundColor: colors.primaryLight,
-        //Todo stila lo sfondo di tutte le pagine
-        tabBarIconStyle: {
-          marginTop: 10,
+
+        sceneStyle: {
+          backgroundColor: colors.primary,
         },
+
         headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.primary,
@@ -31,7 +32,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="workoutTab"
+        options={{
+          title: "Workout",
+          tabBarIcon: ({ color }) => (
+            <Dumbbell size={28} name="dumbbell" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profileTab"
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => (
@@ -40,7 +50,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="settingsTab"
         options={{
           title: "Settings",
           tabBarIcon: ({ color }) => <Cog size={28} name="cog" color={color} />,
