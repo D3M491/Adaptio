@@ -4,6 +4,7 @@ import { colors } from "../../theme";
 import { useRef, useEffect } from "react";
 import Week from "../components/Week";
 import Workout from "../components/Workout";
+import Progress from "../components/Progress";
 
 export default function Tab() {
   const scrollRef = useRef();
@@ -19,6 +20,7 @@ export default function Tab() {
       <Week ref={scrollRef}></Week>
       <Text style={styles.title}>Bentornato , Manuel</Text>
       <Workout type="preview"></Workout>
+      <Progress></Progress>
     </SafeAreaView>
   );
 }

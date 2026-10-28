@@ -1,9 +1,4 @@
-import { View, Text } from "react-native";
-
-export default function Workout() {
-  return (
-    <View>
-      <Text></Text>
-    </View>
-  );
+import Workout from "../components/Workout";
+export default function WorkoutTab() {
+  return <Workout></Workout>;
 }
