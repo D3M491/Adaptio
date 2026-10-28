@@ -18,7 +18,7 @@ export default function Tab() {
     <SafeAreaView style={styles.body}>
       <Week ref={scrollRef}></Week>
       <Text style={styles.title}>Bentornato , Manuel</Text>
-      <Workout></Workout>
+      <Workout type="preview"></Workout>
     </SafeAreaView>
   );
 }

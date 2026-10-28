@@ -2,13 +2,16 @@ import { View, Text } from "react-native";
 import { StyleSheet } from "react-native";
 import { colors } from "../../theme";
 
-export default function Workout() {
-  return (
-    <View>
+export default function Workout({ type }) {
+  return type === "preview" ? (
+    <View type={type}>
       <Text style={styles.sectionText}>WORKOUT</Text>
-      <View style={styles.workoutPreview}>
-        <Text style={styles.sectionText}>WORKOUT</Text>
-      </View>
+      <View style={styles.workoutPreview}></View>
+    </View>
+  ) : (
+    <View type={type}>
+      <Text style={styles.sectionText}>porcodiio</Text>
+      <View style={styles.workoutPreview}></View>
     </View>
   );
 }
@@ -16,10 +19,12 @@ export default function Workout() {
 const styles = StyleSheet.create({
   sectionText: {
     color: colors.secondaryDark,
+    marginBottom: 10,
   },
   workoutPreview: {
-    borderColor: colors.tertiary,
+    padding: 20,
+    borderColor: colors.secondaryDark,
     borderWidth: 1,
-    borderRadius: 2,
+    borderRadius: 14,
   },
 });
