@@ -9,6 +9,10 @@ export default function RootLayout() {
       }}
     >
       <Stack.Screen name="(tabs)"></Stack.Screen>
+      <Stack.Screen
+        name="pro"
+        options={{ presentation: "modal", animation: "slide_from_bottom" }}
+      ></Stack.Screen>
     </Stack>
   );
 }

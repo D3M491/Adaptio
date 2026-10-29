@@ -1,12 +1,15 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Crown } from "lucide-react-native";
+import { useRouter } from "expo-router";
 import { colors } from "../../theme";
 
-//Bottone per provare il piano PRO
-export default function ProBadge({ onPress }) {
+//Bottone per provare il piano PRO, apre la pagina PRO
+export default function ProBadge() {
+  const router = useRouter();
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => router.push("/pro")}
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}
     >
       <View style={styles.badge}>

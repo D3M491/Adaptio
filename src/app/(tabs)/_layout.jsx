@@ -14,7 +14,6 @@ export default function TabLayout() {
         tabBarIndicatorStyle: { height: 0 },
         tabBarLabelStyle: { textTransform: "none", fontSize: 11 },
         tabBarItemStyle: { paddingTop: 0 },
-        //Todo fix tab bar altezza
         tabBarStyle: {
           backgroundColor: colors.primary,
           elevation: 0,
