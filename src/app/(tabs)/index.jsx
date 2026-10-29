@@ -17,8 +17,10 @@ export default function Tab() {
 
   return (
     <SafeAreaView style={styles.body}>
+      <Text style={styles.title}>
+        Bentornato , <Text style={styles.name}>Manuel</Text>
+      </Text>
       <Week ref={scrollRef}></Week>
-      <Text style={styles.title}>Bentornato , Manuel</Text>
       <Workout type="preview"></Workout>
       <Progress></Progress>
     </SafeAreaView>
@@ -30,11 +32,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingTop: 20,
     paddingHorizontal: 20,
-    gap: 20,
+    gap: 12,
   },
 
   title: {
-    color: colors.secondary,
+    color: colors.secondaryDark,
     fontSize: 24,
+  },
+
+  name: {
+    color: colors.secondary,
   },
 });

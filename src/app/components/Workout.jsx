@@ -1,10 +1,10 @@
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
+import { Pencil } from "lucide-react-native";
 import { colors } from "../../theme";
 import { getCurrentWorkout } from "../../data/workouts";
 
-//todo fatti spiegare come ha gestito la logica del workout collapsable
 //Esercizi visibili nella preview quando il pannello e' chiuso
 const COLLAPSED_EXERCISES = 3;
 
@@ -15,6 +15,7 @@ export default function Workout({ type }) {
   //Per ora il workout di oggi e' il primo giorno del workout corrente
   const nextDay = currentWorkout?.days[0];
 
+  //Quanti sono gli esercizi nascosti?
   const hiddenCount = nextDay
     ? Math.max(nextDay.exercises.length - COLLAPSED_EXERCISES, 0)
     : 0;
@@ -69,11 +70,20 @@ export default function Workout({ type }) {
   //Mostra il workout corrente, con i suoi giorni ed esercizi
   const workoutsList = currentWorkout && (
     <View>
-      <Text style={styles.workoutTitle}>{currentWorkout.name}</Text>
+      <Text style={styles.workoutTitle}>
+        {currentWorkout.name.toUpperCase()}
+      </Text>
       {currentWorkout.days.map((day) => (
         <View key={day.day} style={styles.workoutPreview}>
-          <Text style={styles.dayLabel}>DAY {day.day}</Text>
-          <Text style={styles.dayTitle}>{day.name}</Text>
+          <View style={styles.previewHeader}>
+            <View>
+              <Text style={styles.dayLabel}>DAY {day.day}</Text>
+              <Text style={styles.dayTitle}>{day.name}</Text>
+            </View>
+            <Pressable hitSlop={10} style={styles.editButton}>
+              <Pencil size={22} color={colors.tertiary} />
+            </Pressable>
+          </View>
           {day.exercises.map((exercise) => (
             <View key={exercise.exerciseName} style={styles.exercise}>
               <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
@@ -93,7 +103,11 @@ export default function Workout({ type }) {
     todayWorkout
   ) : (
     <SafeAreaView>
-      <ScrollView contentContainerStyle={styles.list}>
+      <ScrollView
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.pageTitle}>Workout Attuale</Text>
         {workoutsList}
       </ScrollView>
     </SafeAreaView>
@@ -109,9 +123,13 @@ const styles = StyleSheet.create({
     color: colors.secondaryDark,
     marginBottom: 10,
   },
-  workoutTitle: {
+  pageTitle: {
     color: colors.secondary,
     fontSize: 24,
+  },
+  workoutTitle: {
+    color: colors.secondaryDark,
+    fontSize: 18,
     marginBottom: 10,
   },
   workoutPreview: {
@@ -134,6 +152,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  editButton: {
+    alignSelf: "flex-start",
   },
   startButton: {
     backgroundColor: colors.tertiary,
