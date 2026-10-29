@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   weeksContainer: {
     display: "flex",
     flexDirection: "row",
-    gap: 5,
+    gap: 0,
   },
 
   day: {

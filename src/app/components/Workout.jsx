@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pencil } from "lucide-react-native";
 import { colors } from "../../theme";
 import { getCurrentWorkout } from "../../data/workouts";
+import ProBadge from "./ProBadge";
 
 //Esercizi visibili nella preview quando il pannello e' chiuso
 const COLLAPSED_EXERCISES = 3;
@@ -107,7 +108,10 @@ export default function Workout({ type }) {
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.pageTitle}>Workout Attuale</Text>
+        <View style={styles.pageHeader}>
+          <Text style={styles.pageTitle}>Workout Attuale</Text>
+          <ProBadge></ProBadge>
+        </View>
         {workoutsList}
       </ScrollView>
     </SafeAreaView>
@@ -122,6 +126,11 @@ const styles = StyleSheet.create({
   sectionText: {
     color: colors.secondaryDark,
     marginBottom: 10,
+  },
+  pageHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   pageTitle: {
     color: colors.secondary,
