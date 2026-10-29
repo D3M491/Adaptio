@@ -1,117 +1,165 @@
-import { View, Text } from "react-native";
-import { StyleSheet } from "react-native";
-import { colors } from "../../theme";
+import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
+import { colors } from "../../theme";
+import { getCurrentWorkout } from "../../data/workouts";
+
+//todo fatti spiegare come ha gestito la logica del workout collapsable
+//Esercizi visibili nella preview quando il pannello e' chiuso
+const COLLAPSED_EXERCISES = 3;
 
 export default function Workout({ type }) {
-  const [todayWorkout, setTodayWorkout] = useState();
+  const [expanded, setExpanded] = useState(false);
+  const currentWorkout = getCurrentWorkout();
 
-  const workouts = [
-    {
-      day: 1,
-      exercises: [
-        {
-          exerciseName: "Dumbbell Horizontal Bench Press",
-          sets: 3,
-          reps: 8,
-          RPE: 1,
-          rest: 90,
-        },
-        {
-          exerciseName: "Pectoral Machine",
-          sets: 3,
-          reps: 12,
-          tecnhique: "dropset",
-          RPE: 1,
-          rest: 90,
-        },
-        {
-          exerciseName: "45° Chest press",
-          sets: 3,
-          reps: 10,
-          RPE: 1,
-          rest: 90,
-        },
-      ],
-    },
-    {
-      day: 2,
-      exercises: [
-        {
-          exerciseName: "Barbbell Row",
-          sets: 4,
-          reps: 10,
-          RPE: 1,
-          rest: 120,
-        },
-        {
-          exerciseName: "Lat Machine",
-          sets: 3,
-          reps: 10,
-          tecnhique: "dropset",
-          RPE: 1,
-          rest: 90,
-        },
-        {
-          exerciseName: "Pulldown Rope",
-          sets: 3,
-          reps: 15,
-          RPE: 1,
-          rest: 90,
-        },
-      ],
-    },
-    {
-      day: 3,
-      exercises: [
-        {
-          exerciseName: "Dumbbell Horizontal Bench Press",
-          sets: 3,
-          reps: 8,
-          RPE: 1,
-          rest: 90,
-        },
-        {
-          exerciseName: "Pectoral Machine",
-          sets: 3,
-          reps: 12,
-          tecnhique: "dropset",
-          RPE: 1,
-          rest: 90,
-        },
-        {
-          exerciseName: "45° Chest press",
-          sets: 3,
-          reps: 10,
-          RPE: 1,
-          rest: 90,
-        },
-      ],
-    },
-  ];
+  //Per ora il workout di oggi e' il primo giorno del workout corrente
+  const nextDay = currentWorkout?.days[0];
 
-  return type === "preview" ? (
+  const hiddenCount = nextDay
+    ? Math.max(nextDay.exercises.length - COLLAPSED_EXERCISES, 0)
+    : 0;
+
+  //Da chiuso mostra i primi esercizi, da aperto tutti
+  const previewExercises = nextDay
+    ? expanded
+      ? nextDay.exercises
+      : nextDay.exercises.slice(0, COLLAPSED_EXERCISES)
+    : [];
+
+  const todayWorkout = (
     <View type={type}>
       <Text style={styles.sectionText}>WORKOUT</Text>
-      <View style={styles.workoutPreview}></View>
+      <View style={styles.workoutPreview}>
+        {nextDay ? (
+          <>
+            <View style={styles.previewHeader}>
+              <View>
+                <Text style={styles.dayLabel}>DAY {nextDay.day}</Text>
+                <Text style={styles.dayTitle}>{nextDay.name}</Text>
+              </View>
+              <Pressable style={styles.startButton}>
+                <Text style={styles.startText}>Start</Text>
+              </Pressable>
+            </View>
+
+            {previewExercises.map((exercise) => (
+              <View key={exercise.exerciseName} style={styles.previewExercise}>
+                <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+                <Text style={styles.exerciseDetails}>
+                  {exercise.sets} x {exercise.reps}
+                </Text>
+              </View>
+            ))}
+
+            {hiddenCount > 0 && (
+              <Pressable onPress={() => setExpanded(!expanded)}>
+                <Text style={styles.toggleText}>
+                  {expanded ? "Mostra meno" : `Mostra tutto (+${hiddenCount})`}
+                </Text>
+              </Pressable>
+            )}
+          </>
+        ) : (
+          <Text style={styles.exerciseDetails}>Nessun workout</Text>
+        )}
+      </View>
     </View>
+  );
+
+  //Mostra il workout corrente, con i suoi giorni ed esercizi
+  const workoutsList = currentWorkout && (
+    <View>
+      <Text style={styles.workoutTitle}>{currentWorkout.name}</Text>
+      {currentWorkout.days.map((day) => (
+        <View key={day.day} style={styles.workoutPreview}>
+          <Text style={styles.dayLabel}>DAY {day.day}</Text>
+          <Text style={styles.dayTitle}>{day.name}</Text>
+          {day.exercises.map((exercise) => (
+            <View key={exercise.exerciseName} style={styles.exercise}>
+              <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+              <Text style={styles.exerciseDetails}>
+                {exercise.sets} x {exercise.reps}
+                {exercise.technique ? ` · ${exercise.technique}` : ""}
+                {` · RPE ${exercise.RPE} · ${exercise.rest}s`}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+
+  return type === "preview" ? (
+    todayWorkout
   ) : (
-    <View type={type}>
-      <Text style={styles.sectionText}>porcodiio</Text>
-      <View style={styles.workoutPreview}></View>
-    </View>
+    <SafeAreaView>
+      <ScrollView contentContainerStyle={styles.list}>
+        {workoutsList}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  list: {
+    gap: 20,
+    padding: 20,
+  },
   sectionText: {
     color: colors.secondaryDark,
     marginBottom: 10,
   },
+  workoutTitle: {
+    color: colors.secondary,
+    fontSize: 24,
+    marginBottom: 10,
+  },
   workoutPreview: {
     padding: 20,
+    marginBottom: 10,
     borderColor: colors.secondaryDark,
     borderWidth: 1,
     borderRadius: 14,
+  },
+  dayLabel: {
+    color: colors.tertiary,
+    marginBottom: 4,
+  },
+  dayTitle: {
+    color: colors.secondary,
+    fontSize: 18,
+    marginBottom: 6,
+  },
+  previewHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  startButton: {
+    backgroundColor: colors.tertiary,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  startText: {
+    color: colors.secondary,
+  },
+  previewExercise: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  toggleText: {
+    color: colors.tertiary,
+    marginTop: 14,
+  },
+  exercise: {
+    marginTop: 8,
+  },
+  exerciseName: {
+    color: colors.secondary,
+  },
+  exerciseDetails: {
+    color: colors.secondaryDark,
   },
 });
