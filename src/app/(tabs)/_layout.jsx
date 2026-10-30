@@ -1,9 +1,10 @@
 import TopTabs from "expo-router/js-top-tabs";
 import { House, PersonStanding, Cog, Dumbbell } from "lucide-react-native";
-import { colors } from "../../theme";
+import { useColors } from "../../theme";
 
 //TopTabs allows swiping left/right, the bar is kept at the bottom
 export default function TabLayout() {
+  const colors = useColors();
   return (
     <TopTabs
       tabBarPosition="bottom"

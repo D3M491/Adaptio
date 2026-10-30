@@ -28,6 +28,8 @@ export default function week() {
     return {
       key: day.toLocaleDateString(),
       dayNumber: dayNumber,
+      //0 is Sunday ... 6 is Saturday
+      weekday: day.getDay(),
       dayName: dayName[0].toUpperCase() + dayName.slice(1),
       today: today.toLocaleDateString(),
     };

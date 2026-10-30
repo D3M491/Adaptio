@@ -1,12 +1,13 @@
 import { View, Text, TextInput, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
-import { colors } from "../../theme";
+import { useColors, useStyles } from "../../theme";
 import { useProfile } from "../../data/ProfileContext";
 import NumberField from "../components/NumberField";
 
 //A row with the starting and the current value of an entry, e.g. a max
 function EntryRow({ label, entry, unit, onChange, first }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={[styles.row, !first && styles.rowDivider]}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -28,6 +29,7 @@ function EntryRow({ label, entry, unit, onChange, first }) {
 
 //Column titles shown above the entry rows
 function EntryHeader() {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.entryHeader}>
       <View style={styles.rowLabel} />
@@ -38,6 +40,8 @@ function EntryHeader() {
 }
 
 export default function ProfileTab() {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   //A plain View with the insets keeps the ScrollView bounded inside the tab pager
   const insets = useSafeAreaInsets();
   const { profile, updatePersonal, updateWeight, updateEntry } = useProfile();
@@ -157,109 +161,110 @@ export default function ProfileTab() {
   );
 }
 
-const styles = StyleSheet.create({
-  body: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    body: {
+      flex: 1,
+      backgroundColor: colors.primary,
+    },
 
-  content: {
-    padding: 20,
-    paddingBottom: 30,
-    gap: 10,
-  },
+    content: {
+      padding: 20,
+      paddingBottom: 30,
+      gap: 10,
+    },
 
-  hero: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 10,
-  },
+    hero: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      marginBottom: 10,
+    },
 
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.tertiary,
-  },
+    avatar: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.tertiary,
+    },
 
-  avatarText: {
-    color: colors.tertiary,
-    fontSize: 26,
-    fontWeight: "700",
-  },
+    avatarText: {
+      color: colors.tertiary,
+      fontSize: 26,
+      fontWeight: "700",
+    },
 
-  name: {
-    color: colors.secondary,
-    fontSize: 24,
-  },
+    name: {
+      color: colors.secondary,
+      fontSize: 24,
+    },
 
-  heroDetails: {
-    color: colors.secondaryDark,
-  },
+    heroDetails: {
+      color: colors.secondaryDark,
+    },
 
-  sectionText: {
-    color: colors.secondaryDark,
-    marginTop: 10,
-  },
+    sectionText: {
+      color: colors.secondaryDark,
+      marginTop: 10,
+    },
 
-  card: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderColor: colors.secondaryDark,
-    borderWidth: 1,
-    borderRadius: 14,
-  },
+    card: {
+      paddingHorizontal: 16,
+      paddingVertical: 6,
+      borderColor: colors.secondaryDark,
+      borderWidth: 1,
+      borderRadius: 14,
+    },
 
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 8,
-  },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      paddingVertical: 8,
+    },
 
-  rowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.primaryLight,
-  },
+    rowDivider: {
+      borderTopWidth: 1,
+      borderTopColor: colors.primaryLight,
+    },
 
-  rowLabel: {
-    flex: 1,
-    color: colors.secondary,
-  },
+    rowLabel: {
+      flex: 1,
+      color: colors.secondary,
+    },
 
-  entryHeader: {
-    flexDirection: "row",
-    gap: 10,
-    paddingTop: 8,
-  },
+    entryHeader: {
+      flexDirection: "row",
+      gap: 10,
+      paddingTop: 8,
+    },
 
-  columnLabel: {
-    color: colors.secondaryDark,
-    fontSize: 11,
-    textAlign: "center",
-  },
+    columnLabel: {
+      color: colors.secondaryDark,
+      fontSize: 11,
+      textAlign: "center",
+    },
 
-  entryField: {
-    width: 96,
-  },
+    entryField: {
+      width: 96,
+    },
 
-  personalField: {
-    width: 150,
-  },
+    personalField: {
+      width: 150,
+    },
 
-  textField: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    backgroundColor: colors.primaryLight,
-    color: colors.secondary,
-    fontSize: 16,
-    textAlign: "right",
-  },
-});
+    textField: {
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      backgroundColor: colors.primaryLight,
+      color: colors.secondary,
+      fontSize: 16,
+      textAlign: "right",
+    },
+  });

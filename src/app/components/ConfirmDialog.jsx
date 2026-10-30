@@ -7,7 +7,7 @@ import {
   Platform,
   StyleSheet,
 } from "react-native";
-import { colors } from "../../theme";
+import { useStyles } from "../../theme";
 
 //Styled replacement for Alert.alert with a cancel and a confirm button,
 //children (e.g. an input) are shown between the message and the buttons
@@ -21,6 +21,7 @@ export default function ConfirmDialog({
   onCancel,
   children,
 }) {
+  const styles = useStyles(createStyles);
   return (
     <Modal
       visible={visible}
@@ -70,71 +71,72 @@ export default function ConfirmDialog({
   );
 }
 
-const styles = StyleSheet.create({
-  avoider: {
-    flex: 1,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    avoider: {
+      flex: 1,
+    },
 
-  backdrop: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 30,
-    backgroundColor: "#000000b3",
-  },
+    backdrop: {
+      flex: 1,
+      justifyContent: "center",
+      padding: 30,
+      backgroundColor: "#000000b3",
+    },
 
-  card: {
-    padding: 24,
-    gap: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    backgroundColor: colors.primary,
-  },
+    card: {
+      padding: 24,
+      gap: 8,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      backgroundColor: colors.primary,
+    },
 
-  title: {
-    color: colors.secondary,
-    fontSize: 20,
-    fontWeight: "700",
-  },
+    title: {
+      color: colors.secondary,
+      fontSize: 20,
+      fontWeight: "700",
+    },
 
-  message: {
-    color: colors.secondaryDark,
-    fontSize: 15,
-  },
+    message: {
+      color: colors.secondaryDark,
+      fontSize: 15,
+    },
 
-  buttons: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 16,
-  },
+    buttons: {
+      flexDirection: "row",
+      gap: 10,
+      marginTop: 16,
+    },
 
-  button: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
+    button: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 14,
+      borderRadius: 14,
+    },
 
-  cancel: {
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-  },
+    cancel: {
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+    },
 
-  confirm: {
-    backgroundColor: colors.tertiary,
-  },
+    confirm: {
+      backgroundColor: colors.tertiary,
+    },
 
-  pressed: {
-    opacity: 0.7,
-  },
+    pressed: {
+      opacity: 0.7,
+    },
 
-  cancelText: {
-    color: colors.secondary,
-    fontWeight: "600",
-  },
+    cancelText: {
+      color: colors.secondary,
+      fontWeight: "600",
+    },
 
-  confirmText: {
-    color: colors.secondary,
-    fontWeight: "700",
-  },
-});
+    confirmText: {
+      color: colors.onTertiary,
+      fontWeight: "700",
+    },
+  });

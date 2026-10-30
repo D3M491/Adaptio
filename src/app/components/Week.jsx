@@ -1,25 +1,56 @@
 import { Pressable, Text, View, ScrollView, StyleSheet } from "react-native";
-import { colors } from "../../theme";
+import { Dumbbell } from "lucide-react-native";
+import { useColors, useStyles } from "../../theme";
 import week from "../../utils";
-import { useState } from "react";
+import { useProfile } from "../../data/ProfileContext";
 
-export default function Week({ ref }) {
-  const [activeDay, setActiveDay] = useState(() => week()[0].today);
+//The selected day (activeDay, the key of the day) is kept by the home, onSelect changes it
+export default function Week({ ref, activeDay, onSelect }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
+  const { profile } = useProfile();
+
+  //Days of the week chosen for training (profiles saved before this choice don't have them)
+  const trainingWeekdays = profile.training?.weekdays ?? [];
 
   //Creates a button for each day of the week
   const weeks = week().map((day) => {
     const isActiveDay = day.key === activeDay;
+    const isToday = day.key === day.today;
+    const isTrainingDay = trainingWeekdays.includes(day.weekday);
 
-    const textStyles = [styles.text, isActiveDay && styles.activeText];
+    //Today has the red background, the selected day only gets the red border
+    const textStyles = [
+      styles.text,
+      isActiveDay && styles.activeText,
+      isToday && styles.todayText,
+    ];
 
     return (
       <Pressable
         key={day.key}
-        style={[styles.day, isActiveDay && styles.activeDay]}
-        onPress={() => setActiveDay(day.key)}
+        style={[
+          styles.day,
+          isToday && styles.today,
+          isActiveDay && styles.activeDay,
+        ]}
+        onPress={() => onSelect(day.key)}
       >
         <Text style={textStyles}>{day.dayNumber}</Text>
         <Text style={textStyles}>{day.dayName}</Text>
+        {/* A dumbbell on the training days, a dash on the others */}
+        <View style={styles.iconSlot}>
+          {isTrainingDay ? (
+            <Dumbbell
+              size={16}
+              color={isToday ? colors.onTertiary : colors.tertiary}
+            />
+          ) : (
+            <Text style={[styles.restDash, isToday && styles.todayText]}>
+              —
+            </Text>
+          )}
+        </View>
       </Pressable>
     );
   });
@@ -32,39 +63,64 @@ export default function Week({ ref }) {
   );
 }
 
-const styles = StyleSheet.create({
-  weeksContainer: {
-    display: "flex",
-    flexDirection: "row",
-    gap: 0,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    weeksContainer: {
+      display: "flex",
+      flexDirection: "row",
+      gap: 0,
+    },
 
-  day: {
-    display: "flex",
-    width: 60,
-    height: 80,
-    textAlign: "center",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    day: {
+      display: "flex",
+      width: 54,
+      height: 86,
+      textAlign: "center",
+      alignItems: "center",
+      justifyContent: "center",
+      //A transparent border, so the selected day doesn't change size
+      borderWidth: 1,
+      borderColor: "transparent",
+      borderRadius: 20,
+    },
 
-  activeDay: {
-    borderColor: colors.tertiary,
-    borderWidth: 1,
-    borderRadius: 20,
-  },
+    today: {
+      backgroundColor: colors.tertiaryDark,
+    },
 
-  title: {
-    fontSize: 24,
-    color: colors.secondary,
-  },
+    activeDay: {
+      borderColor: colors.tertiary,
+      borderWidth: 1,
+      borderRadius: 20,
+    },
 
-  text: {
-    fontSize: 18,
-    color: colors.secondaryDark,
-  },
+    iconSlot: {
+      height: 16,
+      marginTop: 4,
+    },
 
-  activeText: {
-    color: colors.secondary,
-  },
-});
+    restDash: {
+      color: colors.secondaryDark,
+      fontSize: 14,
+      lineHeight: 16,
+    },
+
+    title: {
+      fontSize: 24,
+      color: colors.secondary,
+    },
+
+    text: {
+      fontSize: 16,
+      color: colors.secondaryDark,
+    },
+
+    activeText: {
+      color: colors.secondary,
+    },
+
+    //Text on the red background of today, light in both themes
+    todayText: {
+      color: colors.onTertiary,
+    },
+  });

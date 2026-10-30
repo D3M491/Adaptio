@@ -11,8 +11,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { X, Check, Timer } from "lucide-react-native";
-import { colors } from "../theme";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
+import { useColors, useStyles } from "../theme";
 import { getWorkoutById } from "../data/workouts";
+import { useProfile } from "../data/ProfileContext";
+import { scheduleRestEnd, cancelNotification } from "../notifications";
 import ConfirmDialog from "./components/ConfirmDialog";
 import WorkoutSummary from "./components/WorkoutSummary";
 
@@ -38,6 +41,8 @@ function createSets(exercises) {
 }
 
 export default function WorkoutSession() {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const router = useRouter();
   //SafeAreaView measures 0 insets inside a fullScreenModal, so read them from the root
   const insets = useSafeAreaInsets();
@@ -76,6 +81,38 @@ export default function WorkoutSession() {
   useEffect(() => {
     if (restEnd && restLeft <= 0) setRestEnd(null);
   }, [restEnd, restLeft]);
+
+  const { keepAwake, restNotification } = useProfile().profile.settings;
+
+  //Keeps the screen on during the workout, so the rest timer stays visible
+  useEffect(() => {
+    if (!keepAwake) return;
+    activateKeepAwakeAsync("workout").catch(() => {});
+    return () => {
+      deactivateKeepAwake("workout").catch(() => {});
+    };
+  }, [keepAwake]);
+
+  //Notification when the rest ends, even with the phone locked. It follows the timer:
+  //moved when the rest is changed, removed when it is skipped or the session is closed
+  useEffect(() => {
+    if (!restEnd || !restNotification) return;
+
+    let cancelled = false;
+    let notificationId = null;
+
+    scheduleRestEnd(restEnd)
+      .then((id) => {
+        if (cancelled) cancelNotification(id);
+        else notificationId = id;
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+      cancelNotification(notificationId).catch(() => {});
+    };
+  }, [restEnd, restNotification]);
 
   if (!workoutDay) {
     return (
@@ -192,7 +229,7 @@ export default function WorkoutSession() {
         showsVerticalScrollIndicator={false}
       >
         {workoutDay.exercises.map((exercise, exerciseIndex) => (
-          <View key={exercise.exerciseName} style={styles.exercise}>
+          <View key={`${exercise.exerciseName}-${exerciseIndex}`} style={styles.exercise}>
             <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
             <Text style={styles.exerciseDetails}>
               <Text style={styles.exerciseTarget}>
@@ -204,7 +241,8 @@ export default function WorkoutSession() {
                   <Text style={styles.technique}>{exercise.technique}</Text>
                 </Text>
               )}
-              {` · RPE ${exercise.RPE} · ${exercise.rest}s recupero`}
+              {exercise.RPE !== null && ` · RPE ${exercise.RPE}`}
+              {` · ${exercise.rest}s recupero`}
             </Text>
 
             <View style={styles.setRow}>
@@ -259,7 +297,7 @@ export default function WorkoutSession() {
                 >
                   <Check
                     size={18}
-                    color={set.done ? colors.secondary : colors.secondaryDark}
+                    color={set.done ? colors.onTertiary : colors.secondaryDark}
                   />
                 </Pressable>
               </View>
@@ -335,230 +373,231 @@ export default function WorkoutSession() {
   );
 }
 
-const styles = StyleSheet.create({
-  body: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    body: {
+      flex: 1,
+      backgroundColor: colors.primary,
+    },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 20,
-    paddingBottom: 12,
-  },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 20,
+      paddingBottom: 12,
+    },
 
-  headerCenter: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "baseline",
-    gap: 8,
-  },
+    headerCenter: {
+      flex: 1,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "baseline",
+      gap: 8,
+    },
 
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
+    headerRight: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
 
-  headerFinish: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    backgroundColor: colors.tertiary,
-  },
+    headerFinish: {
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+      borderRadius: 8,
+      backgroundColor: colors.tertiary,
+    },
 
-  headerFinishText: {
-    color: colors.secondary,
-    fontWeight: "600",
-  },
+    headerFinishText: {
+      color: colors.onTertiary,
+      fontWeight: "600",
+    },
 
-  dayLabel: {
-    color: colors.tertiary,
-  },
+    dayLabel: {
+      color: colors.tertiary,
+    },
 
-  dayTitle: {
-    color: colors.secondary,
-    fontSize: 18,
-  },
+    dayTitle: {
+      color: colors.secondary,
+      fontSize: 18,
+    },
 
-  elapsed: {
-    color: colors.secondary,
-    fontSize: 16,
-    fontVariant: ["tabular-nums"],
-  },
+    elapsed: {
+      color: colors.secondary,
+      fontSize: 16,
+      fontVariant: ["tabular-nums"],
+    },
 
-  progressTrack: {
-    height: 3,
-    marginHorizontal: 20,
-    borderRadius: 2,
-    backgroundColor: colors.primaryLight,
-  },
+    progressTrack: {
+      height: 3,
+      marginHorizontal: 20,
+      borderRadius: 2,
+      backgroundColor: colors.primaryLight,
+    },
 
-  progressFill: {
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.tertiary,
-  },
+    progressFill: {
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: colors.tertiary,
+    },
 
-  list: {
-    padding: 20,
-    gap: 14,
-  },
+    list: {
+      padding: 20,
+      gap: 14,
+    },
 
-  exercise: {
-    padding: 20,
-    gap: 6,
-    borderColor: colors.secondaryDark,
-    borderWidth: 1,
-    borderRadius: 14,
-  },
+    exercise: {
+      padding: 20,
+      gap: 6,
+      borderColor: colors.secondaryDark,
+      borderWidth: 1,
+      borderRadius: 14,
+    },
 
-  exerciseName: {
-    color: colors.secondary,
-    fontSize: 16,
-  },
+    exerciseName: {
+      color: colors.secondary,
+      fontSize: 16,
+    },
 
-  technique: {
-    color: colors.tertiary,
-  },
-  exerciseDetails: {
-    color: colors.secondaryDark,
-    marginBottom: 6,
-  },
+    technique: {
+      color: colors.tertiary,
+    },
+    exerciseDetails: {
+      color: colors.secondaryDark,
+      marginBottom: 6,
+    },
 
-  exerciseTarget: {
-    color: colors.secondary,
-  },
+    exerciseTarget: {
+      color: colors.secondary,
+    },
 
-  setRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    borderRadius: 8,
-  },
+    setRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      paddingVertical: 4,
+      paddingHorizontal: 6,
+      borderRadius: 8,
+    },
 
-  setRowDone: {
-    backgroundColor: colors.primaryLight,
-  },
+    setRowDone: {
+      backgroundColor: colors.primaryLight,
+    },
 
-  columnLabel: {
-    color: colors.secondaryDark,
-    fontSize: 11,
-    textAlign: "center",
-  },
+    columnLabel: {
+      color: colors.secondaryDark,
+      fontSize: 11,
+      textAlign: "center",
+    },
 
-  //Column widths shared by the labels row and the set rows
-  setColumn: {
-    width: 30,
-  },
+    //Column widths shared by the labels row and the set rows
+    setColumn: {
+      width: 30,
+    },
 
-  inputColumn: {
-    flex: 1,
-    marginHorizontal: 8,
-  },
+    inputColumn: {
+      flex: 1,
+      marginHorizontal: 8,
+    },
 
-  setNumber: {
-    color: colors.secondary,
-    textAlign: "center",
-    fontSize: 16,
-  },
+    setNumber: {
+      color: colors.secondary,
+      textAlign: "center",
+      fontSize: 16,
+    },
 
-  input: {
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    backgroundColor: colors.primaryLight,
-    color: colors.secondary,
-    textAlign: "center",
-    fontSize: 16,
-  },
+    input: {
+      paddingVertical: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      backgroundColor: colors.primaryLight,
+      color: colors.secondary,
+      textAlign: "center",
+      fontSize: 16,
+    },
 
-  inputInvalid: {
-    borderColor: colors.tertiary,
-  },
+    inputInvalid: {
+      borderColor: colors.tertiary,
+    },
 
-  notes: {
-    marginTop: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    minHeight: 40,
-    borderRadius: 8,
-    color: colors.secondary,
-    backgroundColor: colors.primaryLight,
-    textAlignVertical: "top",
-  },
+    notes: {
+      marginTop: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      minHeight: 40,
+      borderRadius: 8,
+      color: colors.secondary,
+      backgroundColor: colors.primaryLight,
+      textAlignVertical: "top",
+    },
 
-  checkSpacer: {
-    width: 32,
-  },
+    checkSpacer: {
+      width: 32,
+    },
 
-  checkButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-  },
+    checkButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+    },
 
-  checkDone: {
-    borderColor: colors.tertiary,
-    backgroundColor: colors.tertiary,
-  },
+    checkDone: {
+      borderColor: colors.tertiary,
+      backgroundColor: colors.tertiary,
+    },
 
-  finishButton: {
-    alignItems: "center",
-    paddingVertical: 16,
-    marginTop: 6,
-    borderRadius: 14,
-    backgroundColor: colors.tertiary,
-  },
+    finishButton: {
+      alignItems: "center",
+      paddingVertical: 16,
+      marginTop: 6,
+      borderRadius: 14,
+      backgroundColor: colors.tertiary,
+    },
 
-  pressed: {
-    opacity: 0.7,
-  },
+    pressed: {
+      opacity: 0.7,
+    },
 
-  finishText: {
-    color: colors.secondary,
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    finishText: {
+      color: colors.onTertiary,
+      fontSize: 16,
+      fontWeight: "700",
+    },
 
-  restBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    marginHorizontal: 20,
-    marginBottom: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.tertiary,
-    backgroundColor: colors.primary,
-  },
+    restBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      marginHorizontal: 20,
+      marginBottom: 10,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.tertiary,
+      backgroundColor: colors.primary,
+    },
 
-  restTime: {
-    flex: 1,
-    color: colors.secondary,
-    fontSize: 22,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
+    restTime: {
+      flex: 1,
+      color: colors.secondary,
+      fontSize: 22,
+      fontWeight: "700",
+      fontVariant: ["tabular-nums"],
+    },
 
-  restButton: {
-    color: colors.secondary,
-  },
+    restButton: {
+      color: colors.secondary,
+    },
 
-  restSkip: {
-    color: colors.tertiary,
-    fontWeight: "600",
-  },
-});
+    restSkip: {
+      color: colors.tertiary,
+      fontWeight: "600",
+    },
+  });

@@ -12,7 +12,7 @@ import {
   ChartLine,
   Check,
 } from "lucide-react-native";
-import { colors } from "../theme";
+import { useColors, useStyles } from "../theme";
 
 //Todo final prices and trial length
 const TRIAL_DAYS = 7;
@@ -58,6 +58,8 @@ const BENEFITS = [
 ];
 
 export default function Pro() {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState(PLANS[0].id);
 
@@ -150,7 +152,7 @@ export default function Pro() {
               style={[styles.plan, selected && styles.planSelected]}
             >
               <View style={[styles.radio, selected && styles.radioSelected]}>
-                {selected && <Check size={14} color={colors.secondary} />}
+                {selected && <Check size={14} color={colors.onTertiary} />}
               </View>
               <Text style={styles.planLabel}>{plan.label}</Text>
               <View style={styles.planPrices}>
@@ -177,229 +179,230 @@ export default function Pro() {
   );
 }
 
-const styles = StyleSheet.create({
-  body: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    body: {
+      flex: 1,
+      backgroundColor: colors.primary,
+    },
 
-  closeButton: {
-    alignSelf: "flex-end",
-    padding: 20,
-    paddingBottom: 0,
-  },
+    closeButton: {
+      alignSelf: "flex-end",
+      padding: 20,
+      paddingBottom: 0,
+    },
 
-  content: {
-    padding: 20,
-    gap: 12,
-  },
+    content: {
+      padding: 20,
+      gap: 12,
+    },
 
-  hero: {
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
+    hero: {
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 12,
+    },
 
-  crownCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.pro,
-    backgroundColor: colors.proLight,
-  },
+    crownCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.pro,
+      backgroundColor: colors.proLight,
+    },
 
-  title: {
-    color: colors.secondary,
-    fontSize: 28,
-    fontWeight: "700",
-  },
+    title: {
+      color: colors.secondary,
+      fontSize: 28,
+      fontWeight: "700",
+    },
 
-  titlePro: {
-    color: colors.pro,
-  },
+    titlePro: {
+      color: colors.pro,
+    },
 
-  subtitle: {
-    color: colors.secondaryDark,
-    fontSize: 16,
-  },
+    subtitle: {
+      color: colors.secondaryDark,
+      fontSize: 16,
+    },
 
-  aiCard: {
-    padding: 20,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.pro,
-    borderRadius: 14,
-    backgroundColor: colors.proLight,
-  },
+    aiCard: {
+      padding: 20,
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.pro,
+      borderRadius: 14,
+      backgroundColor: colors.proLight,
+    },
 
-  aiHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+    aiHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
 
-  aiTitle: {
-    color: colors.secondary,
-    fontSize: 18,
-    fontWeight: "700",
-  },
+    aiTitle: {
+      color: colors.secondary,
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  aiText: {
-    color: colors.secondary,
-    opacity: 0.8,
-    lineHeight: 20,
-  },
+    aiText: {
+      color: colors.secondary,
+      opacity: 0.8,
+      lineHeight: 20,
+    },
 
-  aiExample: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: colors.primary,
-  },
+    aiExample: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: colors.primary,
+    },
 
-  exampleName: {
-    color: colors.secondary,
-  },
+    exampleName: {
+      color: colors.secondary,
+    },
 
-  exampleLast: {
-    color: colors.secondaryDark,
-    fontSize: 12,
-  },
+    exampleLast: {
+      color: colors.secondaryDark,
+      fontSize: 12,
+    },
 
-  exampleSuggestion: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
+    exampleSuggestion: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
 
-  exampleWeight: {
-    color: colors.pro,
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    exampleWeight: {
+      color: colors.pro,
+      fontSize: 16,
+      fontWeight: "700",
+    },
 
-  exampleWeightDown: {
-    color: colors.tertiary,
-  },
+    exampleWeightDown: {
+      color: colors.tertiary,
+    },
 
-  benefit: {
-    flexDirection: "row",
-    gap: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    borderRadius: 14,
-  },
+    benefit: {
+      flexDirection: "row",
+      gap: 14,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      borderRadius: 14,
+    },
 
-  benefitIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.proLight,
-  },
+    benefitIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.proLight,
+    },
 
-  benefitBody: {
-    flex: 1,
-    gap: 2,
-  },
+    benefitBody: {
+      flex: 1,
+      gap: 2,
+    },
 
-  benefitTitle: {
-    color: colors.secondary,
-    fontWeight: "600",
-  },
+    benefitTitle: {
+      color: colors.secondary,
+      fontWeight: "600",
+    },
 
-  benefitText: {
-    color: colors.secondaryDark,
-  },
+    benefitText: {
+      color: colors.secondaryDark,
+    },
 
-  sectionText: {
-    color: colors.secondaryDark,
-    marginTop: 12,
-  },
+    sectionText: {
+      color: colors.secondaryDark,
+      marginTop: 12,
+    },
 
-  plan: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    borderRadius: 14,
-  },
+    plan: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      borderRadius: 14,
+    },
 
-  planSelected: {
-    borderColor: colors.pro,
-    backgroundColor: colors.proLight,
-  },
+    planSelected: {
+      borderColor: colors.pro,
+      backgroundColor: colors.proLight,
+    },
 
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    radio: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  radioSelected: {
-    borderColor: colors.pro,
-    backgroundColor: colors.pro,
-  },
+    radioSelected: {
+      borderColor: colors.pro,
+      backgroundColor: colors.pro,
+    },
 
-  planLabel: {
-    flex: 1,
-    color: colors.secondary,
-    fontSize: 16,
-  },
+    planLabel: {
+      flex: 1,
+      color: colors.secondary,
+      fontSize: 16,
+    },
 
-  planPrices: {
-    alignItems: "flex-end",
-  },
+    planPrices: {
+      alignItems: "flex-end",
+    },
 
-  planPrice: {
-    color: colors.secondary,
-    fontWeight: "600",
-  },
+    planPrice: {
+      color: colors.secondary,
+      fontWeight: "600",
+    },
 
-  planNote: {
-    color: colors.secondaryDark,
-    fontSize: 12,
-  },
+    planNote: {
+      color: colors.secondaryDark,
+      fontSize: 12,
+    },
 
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    gap: 8,
-  },
+    footer: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      gap: 8,
+    },
 
-  cta: {
-    alignItems: "center",
-    paddingVertical: 16,
-    borderRadius: 14,
-    backgroundColor: colors.pro,
-  },
+    cta: {
+      alignItems: "center",
+      paddingVertical: 16,
+      borderRadius: 14,
+      backgroundColor: colors.pro,
+    },
 
-  pressed: {
-    opacity: 0.7,
-  },
+    pressed: {
+      opacity: 0.7,
+    },
 
-  ctaText: {
-    color: colors.secondary,
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    ctaText: {
+      color: colors.onTertiary,
+      fontSize: 16,
+      fontWeight: "700",
+    },
 
-  footerNote: {
-    color: colors.secondaryDark,
-    fontSize: 12,
-    textAlign: "center",
-  },
-});
+    footerNote: {
+      color: colors.secondaryDark,
+      fontSize: 12,
+      textAlign: "center",
+    },
+  });

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getProgress } from "./progress";
+import { getProgress, LEGACY_DEMO_VALUES } from "./progress";
 
 // Shared user data (personal info, weight, maxes, measurements), editable from Home and Profile.
 // It is saved on the phone, so it survives an app restart.
@@ -8,16 +8,47 @@ const ProfileContext = createContext(null);
 
 const STORAGE_KEY = "profile";
 
+// Empties the entries that still have the example values of old versions
+function clearLegacyDemo(entries) {
+  return entries.map((entry) => {
+    const demo = LEGACY_DEMO_VALUES[entry.name];
+    const isDemo =
+      demo && entry.initial === demo[0] && entry.current === demo[1];
+    return isDemo ? { ...entry, initial: null, current: null } : entry;
+  });
+}
+
 export function ProfileProvider({ children }) {
   const [profile, setProfile] = useState(getProgress);
   const [loaded, setLoaded] = useState(false);
+  // True only in the session where the first-launch form was completed, it is not saved:
+  // the home says "Benvenuto" then, and "Bentornato" from the next app start
+  const [justOnboarded, setJustOnboarded] = useState(false);
 
   // Load the saved data once. Missing sections fall back to the starting data,
   // so fields added in a future version still get a value.
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((saved) => {
-        if (saved) setProfile({ ...getProgress(), ...JSON.parse(saved) });
+        if (saved) {
+          const savedProfile = JSON.parse(saved);
+          const merged = { ...getProgress(), ...savedProfile };
+
+          // Sections that grew in newer versions: a saved profile keeps its values and
+          // gets the new fields (e.g. the weekdays of the training, new settings)
+          merged.settings = { ...getProgress().settings, ...savedProfile.settings };
+          merged.training = { ...getProgress().training, ...savedProfile.training };
+
+          // Old versions saved example maxes and measurements: empty them once, only if
+          // the user didn't change them
+          if (!savedProfile.legacyDemoCleared) {
+            merged.maxes = clearLegacyDemo(merged.maxes);
+            merged.measurements = clearLegacyDemo(merged.measurements);
+            merged.legacyDemoCleared = true;
+          }
+
+          setProfile(merged);
+        }
       })
       .catch(() => {})
       .finally(() => setLoaded(true));
@@ -48,13 +79,55 @@ export function ProfileProvider({ children }) {
     }));
   }
 
-  // group is "maxes" or "measurements", field is "initial" or "current"
+  // Saves the first-launch form: the weight entered is both the starting and the current one
+  function completeOnboarding({ name, age, height, weight, training }) {
+    setJustOnboarded(true);
+    setProfile((prev) => ({
+      ...prev,
+      onboarded: true,
+      personal: { ...prev.personal, name, age, height },
+      weight: { initial: weight, current: weight },
+      training,
+    }));
+  }
+
+  // e.g. updateSetting("keepAwake", false)
+  function updateSetting(key, value) {
+    setProfile((prev) => ({
+      ...prev,
+      settings: { ...prev.settings, [key]: value },
+    }));
+  }
+
+  // Changes the days chosen to train: the days a week are as many as the weekdays
+  function updateTrainingDays(weekdays) {
+    setProfile((prev) => ({
+      ...prev,
+      training: {
+        ...prev.training,
+        weekdays,
+        daysPerWeek: weekdays.length,
+      },
+    }));
+  }
+
+  // Sets the workout shown on the home and used by Start, e.g. selectWorkout("full-body")
+  function selectWorkout(id) {
+    setProfile((prev) => ({ ...prev, currentWorkoutId: id }));
+  }
+
+  // group is "maxes" or "measurements", field is "initial" or "current".
+  // The first value of an empty entry is both the starting and the current one.
   function updateEntry(group, index, field, value) {
     setProfile((prev) => ({
       ...prev,
-      [group]: prev[group].map((entry, i) =>
-        i === index ? { ...entry, [field]: value } : entry,
-      ),
+      [group]: prev[group].map((entry, i) => {
+        if (i !== index) return entry;
+        if (entry.initial === null && entry.current === null) {
+          return { ...entry, initial: value, current: value };
+        }
+        return { ...entry, [field]: value };
+      }),
     }));
   }
 
@@ -63,7 +136,17 @@ export function ProfileProvider({ children }) {
 
   return (
     <ProfileContext.Provider
-      value={{ profile, updatePersonal, updateWeight, updateEntry }}
+      value={{
+        profile,
+        justOnboarded,
+        updatePersonal,
+        updateWeight,
+        updateEntry,
+        completeOnboarding,
+        selectWorkout,
+        updateSetting,
+        updateTrainingDays,
+      }}
     >
       {children}
     </ProfileContext.Provider>

@@ -1,5 +1,7 @@
-// Offline workouts. In the future some will come from an API: just change getWorkouts().
-// Each exercise: rest in seconds, optional technique (e.g. "dropset").
+import { wgerWorkouts } from "./wgerWorkouts";
+
+// Offline workouts, written by hand. More come from wger, see scripts/import-wger.mjs.
+// Each exercise: rest in seconds, optional technique (e.g. "dropset"), RPE can be null.
 const workouts = [
   {
     id: "push-pull-legs",
@@ -195,16 +197,36 @@ const workouts = [
   },
 ];
 
-// Single access point: today it reads the local file, later it can call the API.
+// Where a workout comes from: shown as a label next to it
+export const SOURCE_LABELS = {
+  adaptio: "Adaptio Workouts",
+  wger: "Community Workouts",
+};
+
+const allWorkouts = [
+  ...workouts.map((workout) => ({ ...workout, source: "adaptio" })),
+  ...wgerWorkouts,
+];
+
+// Single access point: today it reads local files, later it can call an API.
 export function getWorkouts() {
-  return workouts;
+  return allWorkouts;
 }
 
-// Workout currently in progress. For now it's the first one: later the user will choose it.
-export function getCurrentWorkout() {
-  return workouts[0];
+// The day of a workout planned on a weekday (0 = Sunday ... 6 = Saturday), or null for a rest day.
+// The training weekdays, from Monday, take the days of the workout one after the other:
+// with Monday, Wednesday and Friday, Monday is DAY 1, Wednesday DAY 2 and Friday DAY 3.
+// If there are more weekdays than days, the days start over.
+export function getWorkoutDayForWeekday(workout, weekdays, weekday) {
+  const fromMonday = (value) => (value + 6) % 7;
+  const ordered = [...weekdays].sort((a, b) => fromMonday(a) - fromMonday(b));
+  const position = ordered.indexOf(weekday);
+
+  if (position === -1) return null;
+  return workout.days[position % workout.days.length];
 }
 
+// The workout chosen by the user is saved in the profile (currentWorkoutId), then found by id.
 export function getWorkoutById(id) {
-  return workouts.find((workout) => workout.id === id);
+  return allWorkouts.find((workout) => workout.id === id);
 }

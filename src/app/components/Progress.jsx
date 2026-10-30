@@ -2,13 +2,13 @@ import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pencil, ChevronRight } from "lucide-react-native";
-import { colors } from "../../theme";
+import { useColors, useStyles } from "../../theme";
 import { useProfile } from "../../data/ProfileContext";
 import ConfirmDialog from "./ConfirmDialog";
 
-//Formats a number the Italian way, e.g. 92.5 -> 92,5
+//Formats a number the Italian way, e.g. 92.5 -> 92,5. An empty value (null) is a dash
 function formatValue(value) {
-  return value.toLocaleString("it-IT");
+  return value === null ? "—" : value.toLocaleString("it-IT");
 }
 
 //Difference from the starting value with its sign, e.g. +12,5 kg
@@ -19,6 +19,8 @@ function formatDelta(entry, unit) {
 }
 
 export default function Progress() {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const router = useRouter();
   const { profile, updateWeight, updateEntry } = useProfile();
   const { weight, maxes, measurements } = profile;
@@ -31,7 +33,7 @@ export default function Progress() {
     editing?.group === "weight" ? weight : editing && maxes[editing.index];
 
   function startEditing(target, entry) {
-    setDraft(String(entry.current).replace(".", ","));
+    setDraft(entry.current === null ? "" : String(entry.current).replace(".", ","));
     setEditing(target);
   }
 
@@ -87,9 +89,13 @@ export default function Progress() {
             </View>
             <Text style={styles.maxValue}>
               {formatValue(max.current)}
-              <Text style={styles.maxUnit}> kg</Text>
+              {max.current !== null && <Text style={styles.maxUnit}> kg</Text>}
             </Text>
-            <Text style={styles.delta}>{formatDelta(max, "kg")}</Text>
+            {max.current === null ? (
+              <Text style={styles.initial}>Tocca per aggiungere</Text>
+            ) : (
+              <Text style={styles.delta}>{formatDelta(max, "kg")}</Text>
+            )}
           </Pressable>
         ))}
       </View>
@@ -114,10 +120,12 @@ export default function Progress() {
           >
             <Text style={styles.measureName}>{measurement.name}</Text>
             <Text style={styles.measureValue}>
-              {formatValue(measurement.current)} cm
+              {measurement.current === null
+                ? "—"
+                : `${formatValue(measurement.current)} cm`}
             </Text>
             <Text style={[styles.delta, styles.measureDelta]}>
-              {formatDelta(measurement, "cm")}
+              {measurement.current !== null && formatDelta(measurement, "cm")}
             </Text>
           </View>
         ))}
@@ -130,7 +138,9 @@ export default function Progress() {
         }
         message={
           editingEntry &&
-          `Valore attuale · iniziale ${formatValue(editingEntry.initial)} kg`
+          (editingEntry.initial === null
+            ? "Il primo valore sarà anche quello iniziale"
+            : `Valore attuale · iniziale ${formatValue(editingEntry.initial)} kg`)
         }
         confirmText="Salva"
         onConfirm={save}
@@ -155,162 +165,163 @@ export default function Progress() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 10,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      gap: 10,
+    },
 
-  sectionText: {
-    color: colors.secondaryDark,
-  },
+    sectionText: {
+      color: colors.secondaryDark,
+    },
 
-  subsectionText: {
-    color: colors.secondaryDark,
-    fontSize: 12,
-  },
+    //Same look as sectionText, so all the titles of the home have the same size
+    subsectionText: {
+      color: colors.secondaryDark,
+    },
 
-  subsectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 6,
-  },
+    subsectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 6,
+    },
 
-  editLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-  },
+    editLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+    },
 
-  editLinkText: {
-    color: colors.tertiary,
-    fontSize: 12,
-  },
+    editLinkText: {
+      color: colors.tertiary,
+      fontSize: 12,
+    },
 
-  card: {
-    padding: 16,
-    gap: 4,
-    borderColor: colors.secondaryDark,
-    borderWidth: 1,
-    borderRadius: 14,
-  },
+    card: {
+      padding: 16,
+      gap: 4,
+      borderColor: colors.secondaryDark,
+      borderWidth: 1,
+      borderRadius: 14,
+    },
 
-  cardPressed: {
-    backgroundColor: colors.primaryLight,
-  },
+    cardPressed: {
+      backgroundColor: colors.primaryLight,
+    },
 
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
 
-  cardLabel: {
-    color: colors.secondaryDark,
-  },
+    cardLabel: {
+      color: colors.secondaryDark,
+    },
 
-  weightRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-  },
+    weightRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+    },
 
-  weightValue: {
-    color: colors.secondary,
-    fontSize: 32,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
+    weightValue: {
+      color: colors.secondary,
+      fontSize: 32,
+      fontWeight: "700",
+      fontVariant: ["tabular-nums"],
+    },
 
-  weightUnit: {
-    fontSize: 16,
-    fontWeight: "400",
-    color: colors.secondaryDark,
-  },
+    weightUnit: {
+      fontSize: 16,
+      fontWeight: "400",
+      color: colors.secondaryDark,
+    },
 
-  initial: {
-    color: colors.secondaryDark,
-    fontSize: 12,
-  },
+    initial: {
+      color: colors.secondaryDark,
+      fontSize: 12,
+    },
 
-  delta: {
-    color: colors.tertiary,
-    fontVariant: ["tabular-nums"],
-  },
+    delta: {
+      color: colors.tertiary,
+      fontVariant: ["tabular-nums"],
+    },
 
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 10,
+    },
 
-  //Two tiles per row: half width minus half the gap
-  gridItem: {
-    width: "48%",
-    flexGrow: 1,
-  },
+    //Two tiles per row: half width minus half the gap
+    gridItem: {
+      width: "48%",
+      flexGrow: 1,
+    },
 
-  maxValue: {
-    color: colors.secondary,
-    fontSize: 22,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
+    maxValue: {
+      color: colors.secondary,
+      fontSize: 22,
+      fontWeight: "700",
+      fontVariant: ["tabular-nums"],
+    },
 
-  maxUnit: {
-    fontSize: 14,
-    fontWeight: "400",
-    color: colors.secondaryDark,
-  },
+    maxUnit: {
+      fontSize: 14,
+      fontWeight: "400",
+      color: colors.secondaryDark,
+    },
 
-  measureRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
+    measureRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 8,
+    },
 
-  measureDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.primaryLight,
-  },
+    measureDivider: {
+      borderTopWidth: 1,
+      borderTopColor: colors.primaryLight,
+    },
 
-  measureName: {
-    flex: 1,
-    color: colors.secondary,
-  },
+    measureName: {
+      flex: 1,
+      color: colors.secondary,
+    },
 
-  measureValue: {
-    color: colors.secondary,
-    fontVariant: ["tabular-nums"],
-  },
+    measureValue: {
+      color: colors.secondary,
+      fontVariant: ["tabular-nums"],
+    },
 
-  measureDelta: {
-    width: 70,
-    textAlign: "right",
-  },
+    measureDelta: {
+      width: 70,
+      textAlign: "right",
+    },
 
-  dialogField: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    backgroundColor: colors.primaryLight,
-  },
+    dialogField: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 12,
+      paddingHorizontal: 14,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      backgroundColor: colors.primaryLight,
+    },
 
-  dialogInput: {
-    flex: 1,
-    minWidth: 0,
-    paddingVertical: 12,
-    color: colors.secondary,
-    fontSize: 22,
-    fontWeight: "700",
-  },
+    dialogInput: {
+      flex: 1,
+      minWidth: 0,
+      paddingVertical: 12,
+      color: colors.secondary,
+      fontSize: 22,
+      fontWeight: "700",
+    },
 
-  dialogUnit: {
-    color: colors.secondaryDark,
-    fontSize: 16,
-  },
-});
+    dialogUnit: {
+      color: colors.secondaryDark,
+      fontSize: 16,
+    },
+  });

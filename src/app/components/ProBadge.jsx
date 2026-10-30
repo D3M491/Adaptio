@@ -1,10 +1,12 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Crown } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { colors } from "../../theme";
+import { useColors, useStyles } from "../../theme";
 
 //Button to try the PRO plan, opens the PRO page
 export default function ProBadge() {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const router = useRouter();
 
   return (
@@ -21,44 +23,45 @@ export default function ProBadge() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    gap: 4,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      alignItems: "center",
+      gap: 4,
+    },
 
-  pressed: {
-    opacity: 0.7,
-  },
+    pressed: {
+      opacity: 0.7,
+    },
 
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.pro,
-    backgroundColor: colors.proLight,
-    shadowColor: colors.pro,
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
-  },
+    badge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.pro,
+      backgroundColor: colors.proLight,
+      shadowColor: colors.pro,
+      shadowOpacity: 0.6,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 6,
+    },
 
-  badgeText: {
-    color: colors.secondary,
-    fontSize: 14,
-    fontWeight: "800",
-    letterSpacing: 1.5,
-  },
+    badgeText: {
+      color: colors.secondary,
+      fontSize: 14,
+      fontWeight: "800",
+      letterSpacing: 1.5,
+    },
 
-  trialText: {
-    color: colors.pro,
-    fontSize: 9,
-    fontWeight: "700",
-    letterSpacing: 1,
-  },
-});
+    trialText: {
+      color: colors.pro,
+      fontSize: 9,
+      fontWeight: "700",
+      letterSpacing: 1,
+    },
+  });

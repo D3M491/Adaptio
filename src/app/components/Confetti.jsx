@@ -9,12 +9,8 @@ import { useEffect, useState } from "react";
 import { colors } from "../../theme";
 
 const PIECES = 60;
-const CONFETTI_COLORS = [
-  colors.tertiary,
-  colors.pro,
-  colors.secondary,
-  "#f5c542",
-];
+//The same in every theme: no white, it wouldn't show on the light one
+const CONFETTI_COLORS = [colors.tertiary, colors.pro, "#f5c542", "#3b82f6"];
 
 function random(min, max) {
   return min + Math.random() * (max - min);

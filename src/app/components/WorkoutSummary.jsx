@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { Trophy } from "lucide-react-native";
-import { colors } from "../../theme";
+import { useColors, useStyles } from "../../theme";
 import Confetti from "./Confetti";
 
 //Kg typed with the Italian keyboard use a comma as decimal separator
@@ -16,6 +16,8 @@ export default function WorkoutSummary({
   duration,
   onClose,
 }) {
+  const colors = useColors();
+  const styles = useStyles(createStyles);
   const doneSets = sets.flat().filter((set) => set.done);
   //An exercise is completed when all of its sets are done
   const completedExercises = sets.filter((exerciseSets) =>
@@ -97,126 +99,127 @@ export default function WorkoutSummary({
   );
 }
 
-const styles = StyleSheet.create({
-  body: {
-    flex: 1,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    body: {
+      flex: 1,
+    },
 
-  content: {
-    padding: 20,
-    gap: 12,
-  },
+    content: {
+      padding: 20,
+      gap: 12,
+    },
 
-  hero: {
-    alignItems: "center",
-    gap: 6,
-    marginVertical: 12,
-  },
+    hero: {
+      alignItems: "center",
+      gap: 6,
+      marginVertical: 12,
+    },
 
-  trophy: {
-    marginBottom: 6,
-  },
+    trophy: {
+      marginBottom: 6,
+    },
 
-  title: {
-    color: colors.secondary,
-    fontSize: 26,
-    fontWeight: "700",
-  },
+    title: {
+      color: colors.secondary,
+      fontSize: 26,
+      fontWeight: "700",
+    },
 
-  subtitle: {
-    color: colors.secondary,
-    fontSize: 16,
-  },
+    subtitle: {
+      color: colors.secondary,
+      fontSize: 16,
+    },
 
-  dayLabel: {
-    color: colors.tertiary,
-  },
+    dayLabel: {
+      color: colors.tertiary,
+    },
 
-  stats: {
-    flexDirection: "row",
-    gap: 10,
-  },
+    stats: {
+      flexDirection: "row",
+      gap: 10,
+    },
 
-  stat: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 16,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    borderRadius: 14,
-  },
+    stat: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4,
+      paddingVertical: 16,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      borderRadius: 14,
+    },
 
-  statValue: {
-    color: colors.secondary,
-    fontSize: 18,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
+    statValue: {
+      color: colors.secondary,
+      fontSize: 18,
+      fontWeight: "700",
+      fontVariant: ["tabular-nums"],
+    },
 
-  statLabel: {
-    color: colors.secondaryDark,
-    fontSize: 11,
-  },
+    statLabel: {
+      color: colors.secondaryDark,
+      fontSize: 11,
+    },
 
-  sectionText: {
-    color: colors.secondaryDark,
-    marginTop: 12,
-  },
+    sectionText: {
+      color: colors.secondaryDark,
+      marginTop: 12,
+    },
 
-  exercise: {
-    padding: 16,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: colors.secondaryDark,
-    borderRadius: 14,
-  },
+    exercise: {
+      padding: 16,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: colors.secondaryDark,
+      borderRadius: 14,
+    },
 
-  exerciseName: {
-    color: colors.secondary,
-    fontSize: 16,
-  },
+    exerciseName: {
+      color: colors.secondary,
+      fontSize: 16,
+    },
 
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-  },
+    chips: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+    },
 
-  chip: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    overflow: "hidden",
-    color: colors.secondary,
-    backgroundColor: colors.primaryLight,
-  },
+    chip: {
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+      overflow: "hidden",
+      color: colors.secondary,
+      backgroundColor: colors.primaryLight,
+    },
 
-  skipped: {
-    color: colors.secondaryDark,
-  },
+    skipped: {
+      color: colors.secondaryDark,
+    },
 
-  note: {
-    color: colors.secondaryDark,
-    fontStyle: "italic",
-  },
+    note: {
+      color: colors.secondaryDark,
+      fontStyle: "italic",
+    },
 
-  closeButton: {
-    alignItems: "center",
-    paddingVertical: 16,
-    marginHorizontal: 20,
-    marginBottom: 10,
-    borderRadius: 14,
-    backgroundColor: colors.tertiary,
-  },
+    closeButton: {
+      alignItems: "center",
+      paddingVertical: 16,
+      marginHorizontal: 20,
+      marginBottom: 10,
+      borderRadius: 14,
+      backgroundColor: colors.tertiary,
+    },
 
-  pressed: {
-    opacity: 0.7,
-  },
+    pressed: {
+      opacity: 0.7,
+    },
 
-  closeText: {
-    color: colors.secondary,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-});
+    closeText: {
+      color: colors.onTertiary,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+  });
