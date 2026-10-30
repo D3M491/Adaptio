@@ -1,5 +1,5 @@
-// Workout offline. In futuro alcuni arriveranno da API: basta cambiare getWorkouts().
-// Ogni esercizio: rest in secondi, technique opzionale (es. "dropset").
+// Offline workouts. In the future some will come from an API: just change getWorkouts().
+// Each exercise: rest in seconds, optional technique (e.g. "dropset").
 const workouts = [
   {
     id: "push-pull-legs",
@@ -195,12 +195,12 @@ const workouts = [
   },
 ];
 
-// Punto di accesso unico: oggi legge il file locale, domani potrà chiamare l'API.
+// Single access point: today it reads the local file, later it can call the API.
 export function getWorkouts() {
   return workouts;
 }
 
-// Workout attualmente in corso. Per ora e' il primo: in futuro sara' scelto dall'utente.
+// Workout currently in progress. For now it's the first one: later the user will choose it.
 export function getCurrentWorkout() {
   return workouts[0];
 }

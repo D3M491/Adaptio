@@ -2,7 +2,7 @@ import TopTabs from "expo-router/js-top-tabs";
 import { House, PersonStanding, Cog, Dumbbell } from "lucide-react-native";
 import { colors } from "../../theme";
 
-//TopTabs permette lo swipe destra/sinistra, la barra viene tenuta in basso
+//TopTabs allows swiping left/right, the bar is kept at the bottom
 export default function TabLayout() {
   return (
     <TopTabs
@@ -18,7 +18,8 @@ export default function TabLayout() {
           backgroundColor: colors.primary,
           elevation: 0,
           shadowOpacity: 0,
-          //Spazio per la barra home di iPhone
+          paddingTop: 6,
+          //Space for the iPhone home bar
           paddingBottom: 18,
         },
         sceneStyle: {

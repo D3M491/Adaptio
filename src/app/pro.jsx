@@ -14,7 +14,7 @@ import {
 } from "lucide-react-native";
 import { colors } from "../theme";
 
-//Todo prezzi e durata prova definitivi
+//Todo final prices and trial length
 const TRIAL_DAYS = 7;
 
 const PLANS = [
@@ -22,7 +22,7 @@ const PLANS = [
   { id: "monthly", label: "Mensile", price: "€5,99/mese", note: null },
 ];
 
-//Esempi di suggerimenti dell'AI mostrati nella card principale
+//Examples of AI suggestions shown in the main card
 const AI_EXAMPLES = [
   {
     exercise: "Panca piana",
@@ -87,7 +87,7 @@ export default function Pro() {
           </Text>
         </View>
 
-        {/* Feature principale: progressioni con l'AI */}
+        {/* Main feature: AI progressions */}
         <View style={styles.aiCard}>
           <View style={styles.aiHeader}>
             <Sparkles size={22} color={colors.pro} />
@@ -162,7 +162,7 @@ export default function Pro() {
         })}
       </ScrollView>
 
-      {/* Todo collegare il pagamento */}
+      {/* Todo connect payment */}
       <View style={styles.footer}>
         <Pressable
           style={({ pressed }) => [styles.cta, pressed && styles.pressed]}

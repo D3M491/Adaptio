@@ -3,7 +3,7 @@ import { Crown } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { colors } from "../../theme";
 
-//Bottone per provare il piano PRO, apre la pagina PRO
+//Button to try the PRO plan, opens the PRO page
 export default function ProBadge() {
   const router = useRouter();
 

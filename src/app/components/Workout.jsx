@@ -1,27 +1,30 @@
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState } from "react";
-import { Pencil } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { Pencil, ChevronDown, ChevronUp } from "lucide-react-native";
 import { colors } from "../../theme";
 import { getCurrentWorkout } from "../../data/workouts";
 import ProBadge from "./ProBadge";
 
-//Esercizi visibili nella preview quando il pannello e' chiuso
+//Exercises shown in the preview when the panel is collapsed
 const COLLAPSED_EXERCISES = 3;
 
 export default function Workout({ type }) {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [expanded, setExpanded] = useState(false);
   const currentWorkout = getCurrentWorkout();
 
-  //Per ora il workout di oggi e' il primo giorno del workout corrente
+  //For now today's workout is the first day of the current workout
   const nextDay = currentWorkout?.days[0];
 
-  //Quanti sono gli esercizi nascosti?
+  //How many exercises are hidden?
   const hiddenCount = nextDay
     ? Math.max(nextDay.exercises.length - COLLAPSED_EXERCISES, 0)
     : 0;
 
-  //Da chiuso mostra i primi esercizi, da aperto tutti
+  //Collapsed shows the first exercises, expanded shows all
   const previewExercises = nextDay
     ? expanded
       ? nextDay.exercises
@@ -31,7 +34,15 @@ export default function Workout({ type }) {
   const todayWorkout = (
     <View type={type}>
       <Text style={styles.sectionText}>WORKOUT</Text>
-      <View style={styles.workoutPreview}>
+      {/* Tapping the card expands it, only the Start button starts the workout */}
+      <Pressable
+        disabled={hiddenCount === 0}
+        onPress={() => setExpanded(!expanded)}
+        style={({ pressed }) => [
+          styles.workoutPreview,
+          pressed && styles.cardPressed,
+        ]}
+      >
         {nextDay ? (
           <>
             <View style={styles.previewHeader}>
@@ -39,7 +50,15 @@ export default function Workout({ type }) {
                 <Text style={styles.dayLabel}>DAY {nextDay.day}</Text>
                 <Text style={styles.dayTitle}>{nextDay.name}</Text>
               </View>
-              <Pressable style={styles.startButton}>
+              <Pressable
+                style={styles.startButton}
+                onPress={() =>
+                  router.push({
+                    pathname: "/workoutSession",
+                    params: { workoutId: currentWorkout.id, day: nextDay.day },
+                  })
+                }
+              >
                 <Text style={styles.startText}>Start</Text>
               </Pressable>
             </View>
@@ -54,21 +73,26 @@ export default function Workout({ type }) {
             ))}
 
             {hiddenCount > 0 && (
-              <Pressable onPress={() => setExpanded(!expanded)}>
-                <Text style={styles.toggleText}>
-                  {expanded ? "Mostra meno" : `Mostra tutto (+${hiddenCount})`}
-                </Text>
-              </Pressable>
+              <View style={styles.toggle}>
+                {expanded ? (
+                  <ChevronUp size={20} color={colors.secondaryDark} />
+                ) : (
+                  <>
+                    <Text style={styles.toggleText}>+{hiddenCount}</Text>
+                    <ChevronDown size={20} color={colors.secondaryDark} />
+                  </>
+                )}
+              </View>
             )}
           </>
         ) : (
           <Text style={styles.exerciseDetails}>Nessun workout</Text>
         )}
-      </View>
+      </Pressable>
     </View>
   );
 
-  //Mostra il workout corrente, con i suoi giorni ed esercizi
+  //Shows the current workout, with its days and exercises
   const workoutsList = currentWorkout && (
     <View>
       <Text style={styles.workoutTitle}>
@@ -90,7 +114,12 @@ export default function Workout({ type }) {
               <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
               <Text style={styles.exerciseDetails}>
                 {exercise.sets} x {exercise.reps}
-                {exercise.technique ? ` · ${exercise.technique}` : ""}
+                {exercise.technique && (
+                  <Text>
+                    {" · "}
+                    <Text style={styles.technique}>{exercise.technique}</Text>
+                  </Text>
+                )}
                 {` · RPE ${exercise.RPE} · ${exercise.rest}s`}
               </Text>
             </View>
@@ -103,7 +132,8 @@ export default function Workout({ type }) {
   return type === "preview" ? (
     todayWorkout
   ) : (
-    <SafeAreaView>
+    //A plain View with the insets keeps the ScrollView bounded inside the tab pager
+    <View style={[styles.page, { paddingTop: insets.top }]}>
       <ScrollView
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -114,11 +144,14 @@ export default function Workout({ type }) {
         </View>
         {workoutsList}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+  },
   list: {
     gap: 20,
     padding: 20,
@@ -169,7 +202,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.tertiary,
     paddingVertical: 8,
     paddingHorizontal: 20,
-    borderRadius: 20,
+    borderRadius: 8,
   },
   startText: {
     color: colors.secondary,
@@ -179,15 +212,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 8,
   },
+  toggle: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 12,
+  },
   toggleText: {
-    color: colors.tertiary,
-    marginTop: 14,
+    color: colors.secondaryDark,
+  },
+  cardPressed: {
+    backgroundColor: colors.primaryLight,
   },
   exercise: {
     marginTop: 8,
   },
   exerciseName: {
     color: colors.secondary,
+  },
+  technique: {
+    color: colors.tertiary,
   },
   exerciseDetails: {
     color: colors.secondaryDark,

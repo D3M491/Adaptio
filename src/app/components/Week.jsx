@@ -6,7 +6,7 @@ import { useState } from "react";
 export default function Week({ ref }) {
   const [activeDay, setActiveDay] = useState(() => week()[0].today);
 
-  //Crea un button per ogni giorno della settimana
+  //Creates a button for each day of the week
   const weeks = week().map((day) => {
     const isActiveDay = day.key === activeDay;
 
@@ -24,7 +24,7 @@ export default function Week({ ref }) {
     );
   });
 
-  //Map i giorni e crea per ogni giorno un component
+  //Maps the days and creates a component for each day
   return (
     <ScrollView ref={ref} horizontal showsHorizontalScrollIndicator={false}>
       <View style={styles.weeksContainer}>{weeks}</View>
