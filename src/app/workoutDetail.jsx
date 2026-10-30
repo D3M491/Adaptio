@@ -1,11 +1,17 @@
+import { useRef, useState } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft, Pencil } from "lucide-react-native";
-import { useColors, useStyles } from "../theme";
-import { getWorkoutById } from "../data/workouts";
+import { ChevronLeft, Pencil, Star } from "lucide-react-native";
+import { useColors, useStyles, glassCard, glassChip } from "../theme";
+import { getWorkoutById, exerciseLabel } from "../data/workouts";
 import { useProfile } from "../data/ProfileContext";
+import { useRatings } from "../data/RatingsContext";
 import SourceTag from "./components/SourceTag";
+import RatingInput from "./components/RatingInput";
+import RatingSummary from "./components/RatingSummary";
+import GlassBackground from "./components/GlassBackground";
+import { useT, useLanguage } from "../i18n";
 
 //A workout with all its days and exercises, from here it can be set as the current one
 export default function WorkoutDetail() {
@@ -14,6 +20,12 @@ export default function WorkoutDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { profile, selectWorkout } = useProfile();
+  const t = useT();
+  const { language } = useLanguage();
+  const { available, myVotes } = useRatings();
+  //The vote is at the bottom: the button at the top scrolls to it
+  const scrollRef = useRef(null);
+  const [ratingY, setRatingY] = useState(0);
 
   const workout = getWorkoutById(id);
   const isCurrent = profile.currentWorkoutId === id;
@@ -25,31 +37,51 @@ export default function WorkoutDetail() {
 
   return (
     <SafeAreaView style={styles.screen}>
+      <GlassBackground />
       <Pressable
         onPress={() => router.back()}
         hitSlop={10}
         style={styles.back}
       >
         <ChevronLeft size={20} color={colors.secondaryDark} />
-        <Text style={styles.backText}>Indietro</Text>
+        <Text style={styles.backText}>{t("common.back")}</Text>
       </Pressable>
 
       {workout ? (
         <>
           <ScrollView
+            ref={scrollRef}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
           >
-            <View>
-              <Text style={styles.title}>{workout.name}</Text>
-              <SourceTag source={workout.source} />
+            <View style={styles.header}>
+              <View style={styles.headerInfo}>
+                <Text style={styles.title}>{workout.name}</Text>
+                <SourceTag source={workout.source} />
+                <RatingSummary workoutId={workout.id} />
+              </View>
+
+              {/* Scrolls down to the stars, at the end of the workout */}
+              {available && (
+                <Pressable
+                  onPress={() => scrollRef.current?.scrollTo({ y: ratingY, animated: true })}
+                  style={({ pressed }) => [styles.reviewButton, pressed && styles.reviewPressed]}
+                >
+                  <Star size={16} color={colors.star} />
+                  <Text style={styles.reviewText}>
+                    {t(myVotes[workout.id] ? "ratings.reviewed" : "ratings.review")}
+                  </Text>
+                </Pressable>
+              )}
             </View>
 
             {workout.days.map((day) => (
               <View key={day.day} style={styles.day}>
                 <View style={styles.dayHeader}>
                   <View>
-                    <Text style={styles.dayLabel}>DAY {day.day}</Text>
+                    <Text style={styles.dayLabel}>
+                      {t("workout.dayLabel", { n: day.day })}
+                    </Text>
                     <Text style={styles.dayTitle}>{day.name}</Text>
                   </View>
                   <Pressable hitSlop={10} style={styles.editButton}>
@@ -60,7 +92,7 @@ export default function WorkoutDetail() {
                 {day.exercises.map((exercise, index) => (
                   <View key={`${exercise.exerciseName}-${index}`} style={styles.exercise}>
                     <Text style={styles.exerciseName}>
-                      {exercise.exerciseName}
+                      {exerciseLabel(exercise, language)}
                     </Text>
                     <Text style={styles.exerciseDetails}>
                       {exercise.sets} x {exercise.reps}
@@ -79,6 +111,10 @@ export default function WorkoutDetail() {
                 ))}
               </View>
             ))}
+
+            <View onLayout={(event) => setRatingY(event.nativeEvent.layout.y)}>
+              <RatingInput workoutId={workout.id} />
+            </View>
           </ScrollView>
 
           <View style={styles.footer}>
@@ -92,13 +128,13 @@ export default function WorkoutDetail() {
               ]}
             >
               <Text style={styles.selectText}>
-                {isCurrent ? "Workout attuale" : "Seleziona questo workout"}
+                {t(isCurrent ? "workout.selected" : "workout.select")}
               </Text>
             </Pressable>
           </View>
         </>
       ) : (
-        <Text style={styles.missing}>Workout non trovato</Text>
+        <Text style={styles.missing}>{t("workout.notFound")}</Text>
       )}
     </SafeAreaView>
   );
@@ -136,10 +172,9 @@ const createStyles = (colors) =>
     },
 
     day: {
+      ...glassCard(colors),
       padding: 20,
-      borderColor: colors.secondaryDark,
-      borderWidth: 1,
-      borderRadius: 14,
+      borderRadius: 18,
     },
 
     dayHeader: {
@@ -161,6 +196,38 @@ const createStyles = (colors) =>
 
     editButton: {
       alignSelf: "flex-start",
+    },
+
+    header: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+
+    headerInfo: {
+      flex: 1,
+    },
+
+    reviewButton: {
+      ...glassChip(colors),
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 14,
+      borderColor: colors.star,
+      borderTopColor: colors.star,
+    },
+
+    reviewPressed: {
+      opacity: 0.7,
+    },
+
+    reviewText: {
+      color: colors.secondary,
+      fontWeight: "600",
     },
 
     exercise: {

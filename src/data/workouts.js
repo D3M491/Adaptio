@@ -217,13 +217,43 @@ export function getWorkouts() {
 // The training weekdays, from Monday, take the days of the workout one after the other:
 // with Monday, Wednesday and Friday, Monday is DAY 1, Wednesday DAY 2 and Friday DAY 3.
 // If there are more weekdays than days, the days start over.
-export function getWorkoutDayForWeekday(workout, weekdays, weekday) {
-  const fromMonday = (value) => (value + 6) % 7;
-  const ordered = [...weekdays].sort((a, b) => fromMonday(a) - fromMonday(b));
-  const position = ordered.indexOf(weekday);
+//The days of the workout rotate through the training days without restarting every week:
+//with 4 training days and a 3 day workout the weeks go D1 D2 D3 D1, then D2 D3 D1 D2 and so on.
+//The rotation starts on startDate ("YYYY-MM-DD", the day the workout was set), the day itself
+//is a Date. Returns null on a day that is not a training day
+export function getWorkoutDayForDate(workout, weekdays, date, startDate) {
+  if (!weekdays.includes(date.getDay())) return null;
 
-  if (position === -1) return null;
-  return workout.days[position % workout.days.length];
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const [year, month, dayOfMonth] = (startDate ?? "").split("-").map(Number);
+  const start = year ? new Date(year, month - 1, dayOfMonth) : day;
+
+  //Training days between the start and the day: before the start they count backwards
+  const forward = day >= start;
+  const from = forward ? new Date(start) : new Date(day);
+  const until = forward ? day : start;
+  let count = 0;
+  while (from < until) {
+    if (weekdays.includes(from.getDay())) count++;
+    from.setDate(from.getDate() + 1);
+  }
+
+  const total = workout.days.length;
+  const position = forward ? count : -count;
+  return workout.days[((position % total) + total) % total];
+}
+
+//Today as "YYYY-MM-DD" in the local time
+export function todayKey() {
+  const now = new Date();
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+// The name of an exercise in a language ("it" or "en"). The imported workouts have it in both,
+// the others have only exerciseName
+export function exerciseLabel(exercise, language) {
+  return exercise.exerciseNames?.[language] ?? exercise.exerciseName;
 }
 
 // The workout chosen by the user is saved in the profile (currentWorkoutId), then found by id.

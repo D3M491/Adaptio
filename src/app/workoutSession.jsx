@@ -13,8 +13,9 @@ import { useState, useEffect } from "react";
 import { X, Check, Timer } from "lucide-react-native";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { useColors, useStyles } from "../theme";
-import { getWorkoutById } from "../data/workouts";
+import { getWorkoutById, exerciseLabel } from "../data/workouts";
 import { useProfile } from "../data/ProfileContext";
+import { useT, useLanguage } from "../i18n";
 import { scheduleRestEnd, cancelNotification } from "../notifications";
 import ConfirmDialog from "./components/ConfirmDialog";
 import WorkoutSummary from "./components/WorkoutSummary";
@@ -82,6 +83,8 @@ export default function WorkoutSession() {
     if (restEnd && restLeft <= 0) setRestEnd(null);
   }, [restEnd, restLeft]);
 
+  const t = useT();
+  const { language } = useLanguage();
   const { keepAwake, restNotification } = useProfile().profile.settings;
 
   //Keeps the screen on during the workout, so the rest timer stays visible
@@ -101,7 +104,10 @@ export default function WorkoutSession() {
     let cancelled = false;
     let notificationId = null;
 
-    scheduleRestEnd(restEnd)
+    scheduleRestEnd(restEnd, {
+      title: t("notifications.restTitle"),
+      body: t("notifications.restBody"),
+    })
       .then((id) => {
         if (cancelled) cancelNotification(id);
         else notificationId = id;
@@ -112,12 +118,12 @@ export default function WorkoutSession() {
       cancelled = true;
       cancelNotification(notificationId).catch(() => {});
     };
-  }, [restEnd, restNotification]);
+  }, [restEnd, restNotification, language]);
 
   if (!workoutDay) {
     return (
       <View style={[styles.body, safeArea]}>
-        <Text style={styles.exerciseDetails}>Workout non trovato</Text>
+        <Text style={styles.exerciseDetails}>{t("workout.notFound")}</Text>
       </View>
     );
   }
@@ -194,7 +200,9 @@ export default function WorkoutSession() {
           <X size={26} color={colors.secondary} />
         </Pressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.dayLabel}>DAY {workoutDay.day}</Text>
+          <Text style={styles.dayLabel}>
+            {t("workout.dayLabel", { n: workoutDay.day })}
+          </Text>
           <Text style={styles.dayTitle}>{workoutDay.name}</Text>
         </View>
         <View style={styles.headerRight}>
@@ -207,7 +215,7 @@ export default function WorkoutSession() {
               pressed && styles.pressed,
             ]}
           >
-            <Text style={styles.headerFinishText}>Termina</Text>
+            <Text style={styles.headerFinishText}>{t("session.finish")}</Text>
           </Pressable>
         </View>
       </View>
@@ -230,7 +238,9 @@ export default function WorkoutSession() {
       >
         {workoutDay.exercises.map((exercise, exerciseIndex) => (
           <View key={`${exercise.exerciseName}-${exerciseIndex}`} style={styles.exercise}>
-            <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+            <Text style={styles.exerciseName}>
+              {exerciseLabel(exercise, language)}
+            </Text>
             <Text style={styles.exerciseDetails}>
               <Text style={styles.exerciseTarget}>
                 {exercise.sets} x {exercise.reps}
@@ -242,13 +252,19 @@ export default function WorkoutSession() {
                 </Text>
               )}
               {exercise.RPE !== null && ` · RPE ${exercise.RPE}`}
-              {` · ${exercise.rest}s recupero`}
+              {` · ${t("session.restSeconds", { seconds: exercise.rest })}`}
             </Text>
 
             <View style={styles.setRow}>
-              <Text style={[styles.columnLabel, styles.setColumn]}>SET</Text>
-              <Text style={[styles.columnLabel, styles.inputColumn]}>KG</Text>
-              <Text style={[styles.columnLabel, styles.inputColumn]}>REPS</Text>
+              <Text style={[styles.columnLabel, styles.setColumn]}>
+                {t("session.set")}
+              </Text>
+              <Text style={[styles.columnLabel, styles.inputColumn]}>
+                {t("session.weight")}
+              </Text>
+              <Text style={[styles.columnLabel, styles.inputColumn]}>
+                {t("session.reps")}
+              </Text>
               <View style={styles.checkSpacer} />
             </View>
 
@@ -311,7 +327,7 @@ export default function WorkoutSession() {
                   prev.map((note, i) => (i === exerciseIndex ? text : note)),
                 )
               }
-              placeholder="Aggiungi una nota..."
+              placeholder={t("session.notePlaceholder")}
               placeholderTextColor={colors.secondaryDark}
               selectionColor={colors.tertiary}
               cursorColor={colors.tertiary}
@@ -328,9 +344,9 @@ export default function WorkoutSession() {
           ]}
         >
           <Text style={styles.finishText}>
-            Termina workout
+            {t("session.finishWorkout")}
             {remainingExercises > 0 &&
-              ` · ${remainingExercises} ${remainingExercises === 1 ? "esercizio rimanente" : "esercizi rimanenti"}`}
+              ` · ${t("session.remaining", { count: remainingExercises })}`}
           </Text>
         </Pressable>
       </ScrollView>
@@ -348,24 +364,27 @@ export default function WorkoutSession() {
             <Text style={styles.restButton}>+{REST_STEP}s</Text>
           </Pressable>
           <Pressable hitSlop={8} onPress={() => setRestEnd(null)}>
-            <Text style={styles.restSkip}>Salta</Text>
+            <Text style={styles.restSkip}>{t("session.skip")}</Text>
           </Pressable>
         </View>
       )}
 
       <ConfirmDialog
         visible={dialog === "finish"}
-        title="Sicuro di voler terminare?"
-        message={`Hai completato ${workoutDay.exercises.length - remainingExercises} esercizi su ${workoutDay.exercises.length}`}
-        confirmText="Termina"
+        title={t("session.finishTitle")}
+        message={t("session.finishMessage", {
+          done: workoutDay.exercises.length - remainingExercises,
+          total: workoutDay.exercises.length,
+        })}
+        confirmText={t("session.finish")}
         onConfirm={finish}
         onCancel={() => setDialog(null)}
       />
       <ConfirmDialog
         visible={dialog === "exit"}
-        title="Uscire dal workout?"
-        message="I progressi di oggi andranno persi"
-        confirmText="Esci"
+        title={t("session.exitTitle")}
+        message={t("session.exitMessage")}
+        confirmText={t("session.exit")}
         onConfirm={close}
         onCancel={() => setDialog(null)}
       />

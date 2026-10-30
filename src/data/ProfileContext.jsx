@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getProgress, LEGACY_DEMO_VALUES } from "./progress";
+import { todayKey } from "./workouts";
 
 // Shared user data (personal info, weight, maxes, measurements), editable from Home and Profile.
 // It is saved on the phone, so it survives an app restart.
@@ -22,7 +23,8 @@ export function ProfileProvider({ children }) {
   const [profile, setProfile] = useState(getProgress);
   const [loaded, setLoaded] = useState(false);
   // True only in the session where the first-launch form was completed, it is not saved:
-  // the home says "Benvenuto" then, and "Bentornato" from the next app start
+  // the home says "Piacere" then, and "Rieccoti" from the next app start
+  // (greetings without a gender, so the app doesn't need to ask it)
   const [justOnboarded, setJustOnboarded] = useState(false);
 
   // Load the saved data once. Missing sections fall back to the starting data,
@@ -45,6 +47,11 @@ export function ProfileProvider({ children }) {
             merged.maxes = clearLegacyDemo(merged.maxes);
             merged.measurements = clearLegacyDemo(merged.measurements);
             merged.legacyDemoCleared = true;
+          }
+
+          //A workout chosen before the rotation existed starts today
+          if (merged.currentWorkoutId && !merged.currentWorkoutStart) {
+            merged.currentWorkoutStart = todayKey();
           }
 
           setProfile(merged);
@@ -113,7 +120,11 @@ export function ProfileProvider({ children }) {
 
   // Sets the workout shown on the home and used by Start, e.g. selectWorkout("full-body")
   function selectWorkout(id) {
-    setProfile((prev) => ({ ...prev, currentWorkoutId: id }));
+    setProfile((prev) => ({
+      ...prev,
+      currentWorkoutId: id,
+      currentWorkoutStart: todayKey(),
+    }));
   }
 
   // group is "maxes" or "measurements", field is "initial" or "current".

@@ -1,12 +1,9 @@
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { Trophy } from "lucide-react-native";
-import { useColors, useStyles } from "../../theme";
+import { useColors, useStyles, glassCard } from "../../theme";
+import { useT, useLanguage, parseNumber, formatNumber } from "../../i18n";
+import { exerciseLabel } from "../../data/workouts";
 import Confetti from "./Confetti";
-
-//Kg typed with the Italian keyboard use a comma as decimal separator
-function parseWeight(weight) {
-  return Number(weight.replace(",", ".")) || 0;
-}
 
 //Recap shown after finishing a workout
 export default function WorkoutSummary({
@@ -18,24 +15,30 @@ export default function WorkoutSummary({
 }) {
   const colors = useColors();
   const styles = useStyles(createStyles);
+  const t = useT();
+  const { language } = useLanguage();
   const doneSets = sets.flat().filter((set) => set.done);
   //An exercise is completed when all of its sets are done
   const completedExercises = sets.filter((exerciseSets) =>
     exerciseSets.every((set) => set.done),
   ).length;
-  //Volume is the sum of kg x reps of every completed set
+  //Volume is the sum of kg x reps of every completed set (kg can be typed with a comma or a point)
   const volume = doneSets.reduce(
-    (total, set) => total + parseWeight(set.weight) * (Number(set.reps) || 0),
+    (total, set) =>
+      total + (parseNumber(set.weight) || 0) * (Number(set.reps) || 0),
     0,
   );
 
   const stats = [
-    { label: "DURATA", value: duration },
+    { label: t("summary.duration"), value: duration },
     {
-      label: "ESERCIZI",
+      label: t("summary.exercises"),
       value: `${completedExercises}/${workoutDay.exercises.length}`,
     },
-    { label: "VOLUME", value: `${volume.toLocaleString("it-IT")} kg` },
+    {
+      label: t("summary.volume"),
+      value: `${formatNumber(volume, language)} kg`,
+    },
   ];
 
   return (
@@ -46,9 +49,12 @@ export default function WorkoutSummary({
       >
         <View style={styles.hero}>
           <Trophy size={48} color={colors.tertiary} style={styles.trophy} />
-          <Text style={styles.title}>Workout completato</Text>
+          <Text style={styles.title}>{t("summary.title")}</Text>
           <Text style={styles.subtitle}>
-            <Text style={styles.dayLabel}>DAY {workoutDay.day}</Text> ·{" "}
+            <Text style={styles.dayLabel}>
+              {t("workout.dayLabel", { n: workoutDay.day })}
+            </Text>{" "}
+            ·{" "}
             {workoutDay.name}
           </Text>
         </View>
@@ -62,12 +68,14 @@ export default function WorkoutSummary({
           ))}
         </View>
 
-        <Text style={styles.sectionText}>ESERCIZI</Text>
+        <Text style={styles.sectionText}>{t("summary.exercises")}</Text>
         {workoutDay.exercises.map((exercise, exerciseIndex) => {
           const exerciseDone = sets[exerciseIndex].filter((set) => set.done);
           return (
             <View key={exercise.exerciseName} style={styles.exercise}>
-              <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+              <Text style={styles.exerciseName}>
+                {exerciseLabel(exercise, language)}
+              </Text>
               {exerciseDone.length > 0 ? (
                 <View style={styles.chips}>
                   {exerciseDone.map((set, i) => (
@@ -77,7 +85,7 @@ export default function WorkoutSummary({
                   ))}
                 </View>
               ) : (
-                <Text style={styles.skipped}>Non completato</Text>
+                <Text style={styles.skipped}>{t("summary.notDone")}</Text>
               )}
               {notes[exerciseIndex] ? (
                 <Text style={styles.note}>{notes[exerciseIndex]}</Text>
@@ -91,7 +99,7 @@ export default function WorkoutSummary({
         onPress={onClose}
         style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
       >
-        <Text style={styles.closeText}>Chiudi</Text>
+        <Text style={styles.closeText}>{t("summary.close")}</Text>
       </Pressable>
 
       <Confetti />
@@ -145,9 +153,8 @@ const createStyles = (colors) =>
       alignItems: "center",
       gap: 4,
       paddingVertical: 16,
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
-      borderRadius: 14,
+      ...glassCard(colors),
+      borderRadius: 18,
     },
 
     statValue: {
@@ -170,9 +177,8 @@ const createStyles = (colors) =>
     exercise: {
       padding: 16,
       gap: 8,
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
-      borderRadius: 14,
+      ...glassCard(colors),
+      borderRadius: 18,
     },
 
     exerciseName: {

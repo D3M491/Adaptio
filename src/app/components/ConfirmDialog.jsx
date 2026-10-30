@@ -7,21 +7,26 @@ import {
   Platform,
   StyleSheet,
 } from "react-native";
-import { useStyles } from "../../theme";
+import { BlurView } from "expo-blur";
+import { useStyles, useScheme, glassCard } from "../../theme";
+import { useT } from "../../i18n";
 
 //Styled replacement for Alert.alert with a cancel and a confirm button,
-//children (e.g. an input) are shown between the message and the buttons
+//children (e.g. an input) are shown between the message and the buttons.
+//Without confirmText and cancelText the buttons say "Confirm" and "Cancel" in the current language
 export default function ConfirmDialog({
   visible,
   title,
   message,
-  confirmText = "Conferma",
-  cancelText = "Annulla",
+  confirmText,
+  cancelText,
   onConfirm,
   onCancel,
   children,
 }) {
   const styles = useStyles(createStyles);
+  const scheme = useScheme();
+  const t = useT();
   return (
     <Modal
       visible={visible}
@@ -37,6 +42,12 @@ export default function ConfirmDialog({
       >
         {/* Tapping outside the card closes the dialog */}
         <Pressable style={styles.backdrop} onPress={onCancel}>
+          {/* The app behind the dialog is blurred */}
+          <BlurView
+            intensity={30}
+            tint={scheme === "dark" ? "dark" : "light"}
+            style={StyleSheet.absoluteFill}
+          />
           <Pressable style={styles.card}>
             <Text style={styles.title}>{title}</Text>
             {message && <Text style={styles.message}>{message}</Text>}
@@ -51,7 +62,9 @@ export default function ConfirmDialog({
                   pressed && styles.pressed,
                 ]}
               >
-                <Text style={styles.cancelText}>{cancelText}</Text>
+                <Text style={styles.cancelText}>
+                  {cancelText ?? t("common.cancel")}
+                </Text>
               </Pressable>
               <Pressable
                 onPress={onConfirm}
@@ -61,7 +74,9 @@ export default function ConfirmDialog({
                   pressed && styles.pressed,
                 ]}
               >
-                <Text style={styles.confirmText}>{confirmText}</Text>
+                <Text style={styles.confirmText}>
+                  {confirmText ?? t("common.confirm")}
+                </Text>
               </Pressable>
             </View>
           </Pressable>
@@ -81,16 +96,14 @@ const createStyles = (colors) =>
       flex: 1,
       justifyContent: "center",
       padding: 30,
-      backgroundColor: "#000000b3",
+      backgroundColor: "#00000066",
     },
 
     card: {
+      ...glassCard(colors),
       padding: 24,
       gap: 8,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
-      backgroundColor: colors.primary,
+      borderRadius: 22,
     },
 
     title: {

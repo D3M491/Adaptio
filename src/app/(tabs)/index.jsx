@@ -7,18 +7,23 @@ import Week from "../components/Week";
 import Workout from "../components/Workout";
 import Progress from "../components/Progress";
 import ProBadge from "../components/ProBadge";
+import GlassBackground from "../components/GlassBackground";
+import { TAB_BAR_SPACE } from "../components/GlassTabBar";
 import { useProfile } from "../../data/ProfileContext";
+import { useT, useLanguage } from "../../i18n";
 
 export default function Tab() {
   const styles = useStyles(createStyles);
+  const t = useT();
+  const { locale } = useLanguage();
   const scrollRef = useRef();
   //A plain View with the insets keeps the ScrollView bounded inside the tab pager
   const insets = useSafeAreaInsets();
   const { profile, justOnboarded } = useProfile();
 
   //The day selected in the week, today at the start: the workout shown depends on it
-  const [selectedKey, setSelectedKey] = useState(() => week()[0].today);
-  const selectedDay = week().find((day) => day.key === selectedKey);
+  const [selectedKey, setSelectedKey] = useState(() => week(locale)[0].today);
+  const selectedDay = week(locale).find((day) => day.key === selectedKey);
 
   //Runs once when the component mounts
   useEffect(() => {
@@ -28,6 +33,7 @@ export default function Tab() {
 
   return (
     <View style={[styles.body, { paddingTop: insets.top }]}>
+      <GlassBackground />
       {/* "handled" lets the buttons of the edit dialog work on the first tap: the dialog is
           inside this ScrollView, which would otherwise use the tap only to close the keyboard */}
       <ScrollView
@@ -37,7 +43,7 @@ export default function Tab() {
       >
         <View style={styles.header}>
           <Text style={styles.title}>
-            {justOnboarded ? "Benvenuto" : "Bentornato"} ,{" "}
+            {t(justOnboarded ? "home.greetingFirst" : "home.greetingReturn")}{" "}
             <Text style={styles.name}>{profile.personal.name}</Text>
           </Text>
           <ProBadge></ProBadge>
@@ -49,7 +55,7 @@ export default function Tab() {
         ></Week>
         <Workout
           type="preview"
-          selectedWeekday={selectedDay?.weekday}
+          selectedDate={selectedDay?.date}
         ></Workout>
         <Progress></Progress>
       </ScrollView>
@@ -67,7 +73,7 @@ const createStyles = (colors) =>
     content: {
       paddingTop: 20,
       paddingHorizontal: 20,
-      paddingBottom: 30,
+      paddingBottom: TAB_BAR_SPACE,
       gap: 12,
     },
 

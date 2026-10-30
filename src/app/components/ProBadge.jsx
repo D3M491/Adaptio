@@ -2,11 +2,13 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Crown } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useColors, useStyles } from "../../theme";
+import { useT } from "../../i18n";
 
 //Button to try the PRO plan, opens the PRO page
 export default function ProBadge() {
   const colors = useColors();
   const styles = useStyles(createStyles);
+  const t = useT();
   const router = useRouter();
 
   return (
@@ -18,7 +20,7 @@ export default function ProBadge() {
         <Crown size={16} color={colors.pro} fill={colors.pro} />
         <Text style={styles.badgeText}>PRO</Text>
       </View>
-      <Text style={styles.trialText}>PROVA GRATIS</Text>
+      <Text style={styles.trialText}>{t("common.freeTrial")}</Text>
     </Pressable>
   );
 }

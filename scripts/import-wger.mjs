@@ -18,8 +18,10 @@ const TEMPLATES = [
   { id: 51701, name: "Full Body" },
 ];
 
-// wger language ids: Italian first, English as fallback
-const LANGUAGES = [13, 2];
+// wger language ids. The app has the names in Italian and in English: when an exercise has no
+// translation in a language, the other one is used
+const ITALIAN = 13;
+const ENGLISH = 2;
 
 const DEFAULT_SETS = 3;
 const DEFAULT_REST = 90;
@@ -45,19 +47,22 @@ function firstNumber(configs) {
   return Number.isNaN(value) ? null : value;
 }
 
-const exerciseNames = new Map();
+const exerciseNamesCache = new Map();
 
-async function exerciseName(id) {
-  if (!exerciseNames.has(id)) {
+// The name of an exercise in Italian and in English: { it, en }
+async function exerciseNames(id) {
+  if (!exerciseNamesCache.has(id)) {
     const info = await get(`exerciseinfo/${id}/`);
     const translations = info.translations ?? [];
-    const found =
-      LANGUAGES.map((language) =>
-        translations.find((translation) => translation.language === language),
-      ).find(Boolean) ?? translations[0];
-    exerciseNames.set(id, found?.name?.trim() || `Esercizio ${id}`);
+    const nameIn = (language) =>
+      translations.find((translation) => translation.language === language)?.name?.trim();
+    const anyName = translations[0]?.name?.trim() || `Exercise ${id}`;
+
+    const english = nameIn(ENGLISH) ?? nameIn(ITALIAN) ?? anyName;
+    const italian = nameIn(ITALIAN) ?? english;
+    exerciseNamesCache.set(id, { it: italian, en: english });
   }
-  return exerciseNames.get(id);
+  return exerciseNamesCache.get(id);
 }
 
 // "Repetitions" -> 8 or "8-12", seconds -> "30s", until failure -> "max"
@@ -75,8 +80,11 @@ function formatReps(entry, units) {
 
 async function convertEntry(entry, units) {
   const rir = firstNumber(entry.rir_configs);
+  const names = await exerciseNames(entry.exercise);
   const exercise = {
-    exerciseName: await exerciseName(entry.exercise),
+    // exerciseName is for a language other than Italian and English
+    exerciseName: names.en,
+    exerciseNames: names,
     sets: firstNumber(entry.set_nr_configs) ?? DEFAULT_SETS,
     reps: formatReps(entry, units),
     // RPE is 10 minus the reps left in reserve, missing when wger has no value

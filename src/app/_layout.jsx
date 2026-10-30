@@ -3,7 +3,9 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useState, useEffect } from "react";
 import { ProfileProvider, useProfile } from "../data/ProfileContext";
+import { RatingsProvider } from "../data/RatingsContext";
 import { ThemeProvider, useScheme } from "../theme";
+import { LanguageProvider, useT, useLanguage } from "../i18n";
 import { syncReminders } from "../notifications";
 import Intro, { IntroContext } from "./components/Intro";
 
@@ -19,6 +21,8 @@ function ThemedStatusBar() {
 //Needs to be inside ProfileProvider to read if the first-launch form is done
 function RootStack() {
   const { profile } = useProfile();
+  const t = useT();
+  const { language } = useLanguage();
 
   //Keeps the weekly reminders in line with the settings and the training days
   const { reminderEnabled, reminderHour, reminderMinute } = profile.settings;
@@ -31,8 +35,17 @@ function RootStack() {
       hour: reminderHour,
       minute: reminderMinute,
       weekdays,
+      title: t("notifications.reminderTitle"),
+      body: t("notifications.reminderBody"),
     }).catch(() => {});
-  }, [reminderEnabled, reminderHour, reminderMinute, weekdaysKey, profile.onboarded]);
+  }, [
+    reminderEnabled,
+    reminderHour,
+    reminderMinute,
+    weekdaysKey,
+    profile.onboarded,
+    language,
+  ]);
 
   return (
     <Stack
@@ -71,12 +84,16 @@ export default function RootLayout() {
   return (
     <ProfileProvider>
       <ThemeProvider>
-        <ThemedStatusBar />
-        <IntroContext.Provider value={introDone}>
-          <RootStack />
-        </IntroContext.Provider>
-        {/* The intro is always dark, like the splash screen it continues */}
-        {!introDone && <Intro onFinish={() => setIntroDone(true)} />}
+        <LanguageProvider>
+          <ThemedStatusBar />
+          <RatingsProvider>
+            <IntroContext.Provider value={introDone}>
+              <RootStack />
+            </IntroContext.Provider>
+          </RatingsProvider>
+          {/* The intro is always dark, like the splash screen it continues */}
+          {!introDone && <Intro onFinish={() => setIntroDone(true)} />}
+        </LanguageProvider>
       </ThemeProvider>
     </ProfileProvider>
   );

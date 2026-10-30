@@ -14,10 +14,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react-native";
-import { useColors, useStyles } from "../theme";
+import { useColors, useStyles, glassCard, glassChip } from "../theme";
 import { useProfile } from "../data/ProfileContext";
+import { useT } from "../i18n";
 import { useIntroDone } from "./components/Intro";
 import RulerPicker from "./components/RulerPicker";
+import GlassBackground from "./components/GlassBackground";
 
 const SELECTED_BG = "#b92e342e";
 
@@ -26,42 +28,43 @@ const SWIPE_DISTANCE = 60;
 
 // type: "text" is typed, "number" is scrolled on a ruler, "days" and "options" are tapped.
 // A number starts at its default and moves between min and max by step.
+// question, unit, label and note are keys of the texts (src/i18n): "cm" and "kg" are the same in every language
 const STEPS = [
-  { key: "name", type: "text", question: "Come ti chiami?" },
-  { key: "age", type: "number", question: "Quanti anni hai?", unit: "anni", min: 12, max: 90, default: 25 },
-  { key: "height", type: "number", question: "Quanto sei alto?", unit: "cm", min: 120, max: 230, default: 175 },
-  { key: "weight", type: "number", question: "Quanto pesi?", unit: "kg", min: 30, max: 250, step: 0.5, default: 70, labelStep: 5 },
-  { key: "daysPerWeek", type: "days", question: "Quante volte a settimana vuoi allenarti?", options: [2, 3, 4, 5, 6] },
+  { key: "name", type: "text", question: "onboarding.questions.name" },
+  { key: "age", type: "number", question: "onboarding.questions.age", unit: "onboarding.years", min: 12, max: 90, default: 25 },
+  { key: "height", type: "number", question: "onboarding.questions.height", unit: "cm", min: 120, max: 230, default: 175 },
+  { key: "weight", type: "number", question: "onboarding.questions.weight", unit: "kg", min: 30, max: 250, step: 0.5, default: 70, labelStep: 5 },
+  { key: "daysPerWeek", type: "days", question: "onboarding.questions.daysPerWeek", options: [2, 3, 4, 5, 6] },
   // As many weekdays as chosen in the previous step, saved as 0 = Sunday ... 6 = Saturday
-  { key: "weekdays", type: "weekdays", question: "In quali giorni ti alleni?" },
+  { key: "weekdays", type: "weekdays", question: "onboarding.questions.weekdays" },
   {
     key: "goal",
     type: "options",
-    question: "Qual è il tuo obiettivo?",
+    question: "onboarding.questions.goal",
     options: [
-      { value: "mass", label: "Aumentare la massa", note: "Più muscoli e più volume" },
-      { value: "fat", label: "Dimagrire", note: "Perdere grasso, restare tonico" },
-      { value: "strength", label: "Diventare più forte", note: "Carichi più alti nei fondamentali" },
+      { value: "mass", label: "onboarding.goal.mass", note: "onboarding.goal.massNote" },
+      { value: "fat", label: "onboarding.goal.fat", note: "onboarding.goal.fatNote" },
+      { value: "strength", label: "onboarding.goal.strength", note: "onboarding.goal.strengthNote" },
     ],
   },
   {
     key: "level",
     type: "options",
-    question: "Che livello hai?",
+    question: "onboarding.questions.level",
     options: [
-      { value: "beginner", label: "Principiante", note: "Meno di 2 anni di allenamento" },
-      { value: "intermediate", label: "Intermedio", note: "Da 2 anni in su" },
-      { value: "advanced", label: "Avanzato", note: "Da 4 anni in su" },
+      { value: "beginner", label: "onboarding.level.beginner", note: "onboarding.level.beginnerNote" },
+      { value: "intermediate", label: "onboarding.level.intermediate", note: "onboarding.level.intermediateNote" },
+      { value: "advanced", label: "onboarding.level.advanced", note: "onboarding.level.advancedNote" },
     ],
   },
   {
     key: "place",
     type: "options",
-    question: "Dove ti alleni?",
+    question: "onboarding.questions.place",
     options: [
-      { value: "gym", label: "Palestra", note: "Macchine, bilancieri e manubri" },
-      { value: "home", label: "Casa", note: "Poco spazio e poca attrezzatura" },
-      { value: "both", label: "Entrambi", note: "A volte in palestra, a volte a casa" },
+      { value: "gym", label: "onboarding.place.gym", note: "onboarding.place.gymNote" },
+      { value: "home", label: "onboarding.place.home", note: "onboarding.place.homeNote" },
+      { value: "both", label: "onboarding.place.both", note: "onboarding.place.bothNote" },
     ],
   },
 ];
@@ -75,15 +78,7 @@ const DEFAULT_ANSWERS = Object.fromEntries(
 );
 
 //Monday first, with the number the days have in JavaScript (0 is Sunday)
-const WEEKDAYS = [
-  { value: 1, label: "Lun" },
-  { value: 2, label: "Mar" },
-  { value: 3, label: "Mer" },
-  { value: 4, label: "Gio" },
-  { value: 5, label: "Ven" },
-  { value: 6, label: "Sab" },
-  { value: 0, label: "Dom" },
-];
+const WEEKDAY_NUMBERS = [1, 2, 3, 4, 5, 6, 0];
 
 function isValid(step, value, answers) {
   if (value === undefined || value === null) return false;
@@ -188,6 +183,7 @@ function SwipeArrow({ direction, visible, faded }) {
 export default function Onboarding() {
   const colors = useColors();
   const styles = useStyles(createStyles);
+  const t = useT();
   const { completeOnboarding } = useProfile();
   const introDone = useIntroDone();
   const inputRef = useRef(null);
@@ -310,7 +306,7 @@ export default function Onboarding() {
         min={step.min}
         max={step.max}
         step={step.step}
-        unit={step.unit}
+        unit={t(step.unit)}
         labelStep={step.labelStep}
       />
     );
@@ -318,13 +314,13 @@ export default function Onboarding() {
     input = (
       <View style={styles.weekdaysBlock}>
         <View style={styles.weekdays}>
-          {WEEKDAYS.map((weekday) => {
-            const isSelected = (value ?? []).includes(weekday.value);
+          {WEEKDAY_NUMBERS.map((weekday) => {
+            const isSelected = (value ?? []).includes(weekday);
             return (
               <Pressable
-                key={weekday.value}
+                key={weekday}
                 style={[styles.weekday, isSelected && styles.selected]}
-                onPress={() => toggleWeekday(weekday.value)}
+                onPress={() => toggleWeekday(weekday)}
               >
                 <Text
                   style={[
@@ -332,14 +328,17 @@ export default function Onboarding() {
                     isSelected && styles.selectedText,
                   ]}
                 >
-                  {weekday.label}
+                  {t(`weekdays.${weekday}`)}
                 </Text>
               </Pressable>
             );
           })}
         </View>
         <Text style={styles.weekdaysHint}>
-          {(value ?? []).length} di {answers.daysPerWeek} giorni scelti
+          {t("onboarding.daysChosen", {
+            count: (value ?? []).length,
+            total: answers.daysPerWeek,
+          })}
         </Text>
       </View>
     );
@@ -370,8 +369,8 @@ export default function Onboarding() {
             style={[styles.option, value === option.value && styles.selected]}
             onPress={() => setValue(option.value)}
           >
-            <Text style={styles.optionLabel}>{option.label}</Text>
-            <Text style={styles.optionNote}>{option.note}</Text>
+            <Text style={styles.optionLabel}>{t(option.label)}</Text>
+            <Text style={styles.optionNote}>{t(option.note)}</Text>
           </Pressable>
         ))}
       </View>
@@ -380,6 +379,7 @@ export default function Onboarding() {
 
   return (
     <SafeAreaView style={styles.screen}>
+      <GlassBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -400,7 +400,7 @@ export default function Onboarding() {
             style={styles.back}
           >
             <Text style={[styles.backText, index === 0 && styles.hidden]}>
-              ‹ Indietro
+              ‹ {t("common.back")}
             </Text>
           </Pressable>
         </View>
@@ -409,9 +409,9 @@ export default function Onboarding() {
           <SwipeArrow direction="up" visible={index > 0} />
           <StepView key={step.key} direction={direction}>
             <Text style={styles.stepLabel}>
-              {index + 1} DI {STEPS.length}
+              {t("onboarding.stepOf", { n: index + 1, total: STEPS.length })}
             </Text>
-            <Text style={styles.question}>{step.question}</Text>
+            <Text style={styles.question}>{t(step.question)}</Text>
             {input}
           </StepView>
           {!isLast && (
@@ -424,7 +424,9 @@ export default function Onboarding() {
           onPress={next}
           disabled={!canContinue}
         >
-          <Text style={styles.buttonText}>{isLast ? "Inizia" : "Avanti"}</Text>
+          <Text style={styles.buttonText}>
+            {t(isLast ? "onboarding.start" : "onboarding.next")}
+          </Text>
         </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -545,8 +547,7 @@ const createStyles = (colors) =>
       height: 56,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
+      ...glassChip(colors),
       borderRadius: 14,
     },
 
@@ -565,8 +566,7 @@ const createStyles = (colors) =>
       height: 64,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
+      ...glassChip(colors),
       borderRadius: 16,
     },
 
@@ -581,9 +581,8 @@ const createStyles = (colors) =>
     },
 
     option: {
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
-      borderRadius: 16,
+      ...glassCard(colors),
+      borderRadius: 18,
       paddingVertical: 14,
       paddingHorizontal: 18,
     },
@@ -601,6 +600,7 @@ const createStyles = (colors) =>
 
     selected: {
       borderColor: colors.tertiary,
+      borderTopColor: colors.tertiary,
       backgroundColor: SELECTED_BG,
     },
 

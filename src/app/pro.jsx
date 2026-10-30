@@ -12,17 +12,30 @@ import {
   ChartLine,
   Check,
 } from "lucide-react-native";
-import { useColors, useStyles } from "../theme";
+import { useColors, useStyles, glassCard } from "../theme";
+import { useT, entryName } from "../i18n";
+import GlassBackground from "./components/GlassBackground";
 
 //Todo final prices and trial length
 const TRIAL_DAYS = 7;
 
+//label, price and note are keys of the texts (src/i18n)
 const PLANS = [
-  { id: "yearly", label: "Annuale", price: "€39,99/anno", note: "€3,33/mese" },
-  { id: "monthly", label: "Mensile", price: "€5,99/mese", note: null },
+  {
+    id: "yearly",
+    label: "pro.plans.yearly",
+    price: "pro.plans.yearlyPrice",
+    note: "pro.plans.yearlyNote",
+  },
+  {
+    id: "monthly",
+    label: "pro.plans.monthly",
+    price: "pro.plans.monthlyPrice",
+    note: null,
+  },
 ];
 
-//Examples of AI suggestions shown in the main card
+//Examples of AI suggestions shown in the main card (exercise is the name of a max, translated when shown)
 const AI_EXAMPLES = [
   {
     exercise: "Panca piana",
@@ -37,7 +50,7 @@ const AI_EXAMPLES = [
     up: false,
   },
   {
-    exercise: "Stacco da terra",
+    exercise: "Stacco",
     last: "140kg x 5 @ RPE 7",
     suggestion: "140kg x 6",
     up: true,
@@ -47,24 +60,26 @@ const AI_EXAMPLES = [
 const BENEFITS = [
   {
     Icon: ClipboardList,
-    title: "Schede esclusive",
-    text: "Programmi creati da coach per forza, ipertrofia e ricomposizione",
+    title: "pro.benefits.plansTitle",
+    text: "pro.benefits.plansText",
   },
   {
     Icon: ChartLine,
-    title: "Statistiche avanzate",
-    text: "Massimali stimati, volume settimanale e andamento di ogni esercizio",
+    title: "pro.benefits.statsTitle",
+    text: "pro.benefits.statsText",
   },
 ];
 
 export default function Pro() {
   const colors = useColors();
   const styles = useStyles(createStyles);
+  const t = useT();
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState(PLANS[0].id);
 
   return (
     <SafeAreaView style={styles.body}>
+      <GlassBackground />
       <Pressable
         hitSlop={10}
         style={styles.closeButton}
@@ -84,31 +99,27 @@ export default function Pro() {
           <Text style={styles.title}>
             Adaptio <Text style={styles.titlePro}>PRO</Text>
           </Text>
-          <Text style={styles.subtitle}>
-            Allenati sempre con il carico giusto
-          </Text>
+          <Text style={styles.subtitle}>{t("pro.subtitle")}</Text>
         </View>
 
         {/* Main feature: AI progressions */}
         <View style={styles.aiCard}>
           <View style={styles.aiHeader}>
             <Sparkles size={22} color={colors.pro} />
-            <Text style={styles.aiTitle}>Progressioni con l'AI</Text>
+            <Text style={styles.aiTitle}>{t("pro.aiTitle")}</Text>
           </View>
-          <Text style={styles.aiText}>
-            Dopo ogni allenamento l'AI analizza serie, ripetizioni e RPE e ti
-            dice quanto caricare la volta successiva, quando aggiungere
-            ripetizioni o quando scaricare per recuperare
-          </Text>
+          <Text style={styles.aiText}>{t("pro.aiText")}</Text>
 
           {AI_EXAMPLES.map((example) => {
             const TrendIcon = example.up ? TrendingUp : TrendingDown;
             return (
               <View key={example.exercise} style={styles.aiExample}>
                 <View>
-                  <Text style={styles.exampleName}>{example.exercise}</Text>
+                  <Text style={styles.exampleName}>
+                    {entryName(t, example.exercise)}
+                  </Text>
                   <Text style={styles.exampleLast}>
-                    Ultima: {example.last}
+                    {t("pro.last", { value: example.last })}
                   </Text>
                 </View>
                 <View style={styles.exampleSuggestion}>
@@ -136,13 +147,13 @@ export default function Pro() {
               <Icon size={20} color={colors.pro} />
             </View>
             <View style={styles.benefitBody}>
-              <Text style={styles.benefitTitle}>{title}</Text>
-              <Text style={styles.benefitText}>{text}</Text>
+              <Text style={styles.benefitTitle}>{t(title)}</Text>
+              <Text style={styles.benefitText}>{t(text)}</Text>
             </View>
           </View>
         ))}
 
-        <Text style={styles.sectionText}>SCEGLI IL PIANO</Text>
+        <Text style={styles.sectionText}>{t("pro.choosePlan")}</Text>
         {PLANS.map((plan) => {
           const selected = plan.id === selectedPlan;
           return (
@@ -154,10 +165,12 @@ export default function Pro() {
               <View style={[styles.radio, selected && styles.radioSelected]}>
                 {selected && <Check size={14} color={colors.onTertiary} />}
               </View>
-              <Text style={styles.planLabel}>{plan.label}</Text>
+              <Text style={styles.planLabel}>{t(plan.label)}</Text>
               <View style={styles.planPrices}>
-                <Text style={styles.planPrice}>{plan.price}</Text>
-                {plan.note && <Text style={styles.planNote}>{plan.note}</Text>}
+                <Text style={styles.planPrice}>{t(plan.price)}</Text>
+                {plan.note && (
+                  <Text style={styles.planNote}>{t(plan.note)}</Text>
+                )}
               </View>
             </Pressable>
           );
@@ -169,11 +182,11 @@ export default function Pro() {
         <Pressable
           style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
         >
-          <Text style={styles.ctaText}>Prova gratis per {TRIAL_DAYS} giorni</Text>
+          <Text style={styles.ctaText}>
+            {t("pro.trial", { days: TRIAL_DAYS })}
+          </Text>
         </Pressable>
-        <Text style={styles.footerNote}>
-          Nessun addebito oggi · Disdici quando vuoi
-        </Text>
+        <Text style={styles.footerNote}>{t("pro.footerNote")}</Text>
       </View>
     </SafeAreaView>
   );
@@ -294,9 +307,8 @@ const createStyles = (colors) =>
       flexDirection: "row",
       gap: 14,
       padding: 16,
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
-      borderRadius: 14,
+      ...glassCard(colors),
+      borderRadius: 18,
     },
 
     benefitIcon: {
@@ -332,13 +344,13 @@ const createStyles = (colors) =>
       alignItems: "center",
       gap: 12,
       padding: 16,
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
-      borderRadius: 14,
+      ...glassCard(colors),
+      borderRadius: 18,
     },
 
     planSelected: {
       borderColor: colors.pro,
+      borderTopColor: colors.pro,
       backgroundColor: colors.proLight,
     },
 

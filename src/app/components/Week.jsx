@@ -3,18 +3,20 @@ import { Dumbbell } from "lucide-react-native";
 import { useColors, useStyles } from "../../theme";
 import week from "../../utils";
 import { useProfile } from "../../data/ProfileContext";
+import { useLanguage } from "../../i18n";
 
 //The selected day (activeDay, the key of the day) is kept by the home, onSelect changes it
 export default function Week({ ref, activeDay, onSelect }) {
   const colors = useColors();
   const styles = useStyles(createStyles);
   const { profile } = useProfile();
+  const { locale } = useLanguage();
 
   //Days of the week chosen for training (profiles saved before this choice don't have them)
   const trainingWeekdays = profile.training?.weekdays ?? [];
 
   //Creates a button for each day of the week
-  const weeks = week().map((day) => {
+  const weeks = week(locale).map((day) => {
     const isActiveDay = day.key === activeDay;
     const isToday = day.key === day.today;
     const isTrainingDay = trainingWeekdays.includes(day.weekday);
@@ -90,6 +92,7 @@ const createStyles = (colors) =>
 
     activeDay: {
       borderColor: colors.tertiary,
+      borderTopColor: colors.tertiary,
       borderWidth: 1,
       borderRadius: 20,
     },

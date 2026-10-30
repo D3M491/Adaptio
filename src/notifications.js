@@ -28,18 +28,16 @@ export async function askPermission() {
   return asked.granted;
 }
 
-//Schedules the "rest is over" notification at endTime (a timestamp). Returns its id,
-//or null if it can't be shown, pass the id to cancelNotification to remove it
-export async function scheduleRestEnd(endTime) {
+//Schedules the "rest is over" notification at endTime (a timestamp), with the title and the
+//body already in the current language. Returns its id, or null if it can't be shown,
+//pass the id to cancelNotification to remove it
+export async function scheduleRestEnd(endTime, { title, body }) {
   if (!(await askPermission())) return null;
 
   const seconds = Math.max(Math.ceil((endTime - Date.now()) / 1000), 1);
 
   return Notifications.scheduleNotificationAsync({
-    content: {
-      title: "Pausa finita",
-      body: "Pronto per la prossima serie",
-    },
+    content: { title, body },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
       seconds,
@@ -53,8 +51,16 @@ export async function cancelNotification(id) {
 }
 
 //Puts the weekly reminders in line with the settings: removes the old ones and, if
-//they are enabled, schedules one for each training weekday (0 = Sunday ... 6 = Saturday)
-export async function syncReminders({ enabled, hour, minute, weekdays }) {
+//they are enabled, schedules one for each training weekday (0 = Sunday ... 6 = Saturday).
+//title and body are the text of the reminder, in the current language
+export async function syncReminders({
+  enabled,
+  hour,
+  minute,
+  weekdays,
+  title,
+  body,
+}) {
   if (!supported) return;
 
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
@@ -72,10 +78,7 @@ export async function syncReminders({ enabled, hour, minute, weekdays }) {
   for (const weekday of weekdays) {
     await Notifications.scheduleNotificationAsync({
       identifier: `reminder-${weekday}`,
-      content: {
-        title: "È ora di allenarsi",
-        body: "Il tuo workout di oggi ti aspetta",
-      },
+      content: { title, body },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
         //Expo counts the weekdays from 1 = Sunday

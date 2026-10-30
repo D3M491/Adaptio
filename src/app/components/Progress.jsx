@@ -2,25 +2,36 @@ import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pencil, ChevronRight } from "lucide-react-native";
-import { useColors, useStyles } from "../../theme";
+import { useColors, useStyles, glassCard } from "../../theme";
 import { useProfile } from "../../data/ProfileContext";
+import {
+  useT,
+  useLanguage,
+  formatNumber,
+  numberToText,
+  parseNumber,
+  entryName,
+} from "../../i18n";
 import ConfirmDialog from "./ConfirmDialog";
 
-//Formats a number the Italian way, e.g. 92.5 -> 92,5. An empty value (null) is a dash
-function formatValue(value) {
-  return value === null ? "—" : value.toLocaleString("it-IT");
+//Formats a number the way the language does, e.g. 92.5 -> 92,5 in Italian. An empty value (null) is a dash
+function formatValue(value, language) {
+  return value === null ? "—" : formatNumber(value, language);
 }
 
 //Difference from the starting value with its sign, e.g. +12,5 kg
-function formatDelta(entry, unit) {
+function formatDelta(entry, unit, language) {
   const delta = Math.round((entry.current - entry.initial) * 10) / 10;
   const sign = delta > 0 ? "+" : delta < 0 ? "−" : "";
-  return `${sign}${formatValue(Math.abs(delta))} ${unit}`;
+  return `${sign}${formatValue(Math.abs(delta), language)} ${unit}`;
 }
+
 
 export default function Progress() {
   const colors = useColors();
   const styles = useStyles(createStyles);
+  const t = useT();
+  const { language } = useLanguage();
   const router = useRouter();
   const { profile, updateWeight, updateEntry } = useProfile();
   const { weight, maxes, measurements } = profile;
@@ -33,13 +44,13 @@ export default function Progress() {
     editing?.group === "weight" ? weight : editing && maxes[editing.index];
 
   function startEditing(target, entry) {
-    setDraft(entry.current === null ? "" : String(entry.current).replace(".", ","));
+    setDraft(numberToText(entry.current, language));
     setEditing(target);
   }
 
   //Saves the new current value, an invalid number is ignored
   function save() {
-    const value = Number(draft.replace(",", "."));
+    const value = parseNumber(draft);
     if (draft.trim() && !Number.isNaN(value)) {
       if (editing.group === "weight") updateWeight("current", value);
       else updateEntry("maxes", editing.index, "current", value);
@@ -49,29 +60,31 @@ export default function Progress() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionText}>PROGRESS</Text>
+      <Text style={styles.sectionText}>{t("progress.section")}</Text>
 
       <Pressable
         onPress={() => startEditing({ group: "weight" }, weight)}
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
         <View style={styles.cardHeader}>
-          <Text style={styles.cardLabel}>Peso corporeo</Text>
+          <Text style={styles.cardLabel}>{t("progress.bodyWeight")}</Text>
           <Pencil size={14} color={colors.secondaryDark} />
         </View>
         <View style={styles.weightRow}>
           <Text style={styles.weightValue}>
-            {formatValue(weight.current)}
+            {formatValue(weight.current, language)}
             <Text style={styles.weightUnit}> kg</Text>
           </Text>
-          <Text style={styles.delta}>{formatDelta(weight, "kg")}</Text>
+          <Text style={styles.delta}>{formatDelta(weight, "kg", language)}</Text>
         </View>
         <Text style={styles.initial}>
-          Iniziale {formatValue(weight.initial)} kg
+          {t("progress.initial", {
+            value: formatValue(weight.initial, language),
+          })}
         </Text>
       </Pressable>
 
-      <Text style={styles.subsectionText}>MASSIMALI</Text>
+      <Text style={styles.subsectionText}>{t("progress.maxes")}</Text>
       <View style={styles.grid}>
         {maxes.map((max, index) => (
           <Pressable
@@ -84,17 +97,17 @@ export default function Progress() {
             ]}
           >
             <View style={styles.cardHeader}>
-              <Text style={styles.cardLabel}>{max.name}</Text>
+              <Text style={styles.cardLabel}>{entryName(t, max.name)}</Text>
               <Pencil size={14} color={colors.secondaryDark} />
             </View>
             <Text style={styles.maxValue}>
-              {formatValue(max.current)}
+              {formatValue(max.current, language)}
               {max.current !== null && <Text style={styles.maxUnit}> kg</Text>}
             </Text>
             {max.current === null ? (
-              <Text style={styles.initial}>Tocca per aggiungere</Text>
+              <Text style={styles.initial}>{t("progress.tapToAdd")}</Text>
             ) : (
-              <Text style={styles.delta}>{formatDelta(max, "kg")}</Text>
+              <Text style={styles.delta}>{formatDelta(max, "kg", language)}</Text>
             )}
           </Pressable>
         ))}
@@ -102,13 +115,15 @@ export default function Progress() {
 
       {/* Measurements are many small values: they're edited in the Profile tab */}
       <View style={styles.subsectionHeader}>
-        <Text style={styles.subsectionText}>CIRCONFERENZE</Text>
+        <Text style={styles.subsectionText}>
+          {t("progress.measurements")}
+        </Text>
         <Pressable
           hitSlop={10}
           onPress={() => router.navigate("/profileTab")}
           style={styles.editLink}
         >
-          <Text style={styles.editLinkText}>Modifica</Text>
+          <Text style={styles.editLinkText}>{t("progress.edit")}</Text>
           <ChevronRight size={14} color={colors.tertiary} />
         </Pressable>
       </View>
@@ -118,14 +133,17 @@ export default function Progress() {
             key={measurement.name}
             style={[styles.measureRow, i > 0 && styles.measureDivider]}
           >
-            <Text style={styles.measureName}>{measurement.name}</Text>
+            <Text style={styles.measureName}>
+              {entryName(t, measurement.name)}
+            </Text>
             <Text style={styles.measureValue}>
               {measurement.current === null
                 ? "—"
-                : `${formatValue(measurement.current)} cm`}
+                : `${formatValue(measurement.current, language)} cm`}
             </Text>
             <Text style={[styles.delta, styles.measureDelta]}>
-              {measurement.current !== null && formatDelta(measurement, "cm")}
+              {measurement.current !== null &&
+                formatDelta(measurement, "cm", language)}
             </Text>
           </View>
         ))}
@@ -134,15 +152,19 @@ export default function Progress() {
       <ConfirmDialog
         visible={editing !== null}
         title={
-          editing?.group === "weight" ? "Peso corporeo" : editingEntry?.name
+          editing?.group === "weight"
+            ? t("progress.bodyWeight")
+            : editingEntry && entryName(t, editingEntry.name)
         }
         message={
           editingEntry &&
           (editingEntry.initial === null
-            ? "Il primo valore sarà anche quello iniziale"
-            : `Valore attuale · iniziale ${formatValue(editingEntry.initial)} kg`)
+            ? t("progress.firstValue")
+            : t("progress.currentValue", {
+                value: formatValue(editingEntry.initial, language),
+              }))
         }
-        confirmText="Salva"
+        confirmText={t("progress.save")}
         onConfirm={save}
         onCancel={() => setEditing(null)}
       >
@@ -199,11 +221,10 @@ const createStyles = (colors) =>
     },
 
     card: {
+      ...glassCard(colors),
       padding: 16,
       gap: 4,
-      borderColor: colors.secondaryDark,
-      borderWidth: 1,
-      borderRadius: 14,
+      borderRadius: 18,
     },
 
     cardPressed: {

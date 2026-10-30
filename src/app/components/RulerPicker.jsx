@@ -1,14 +1,15 @@
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { useState, useRef } from "react";
 import { useStyles } from "../../theme";
+import { useLanguage, numberToText } from "../../i18n";
 
 //Distance between two marks, and the height of the ruler
 const TICK_WIDTH = 14;
 const RULER_HEIGHT = 64;
 
-//Shows a number with the Italian comma, e.g. 79.5 -> "79,5"
-function format(value, decimals) {
-  return decimals ? value.toFixed(decimals).replace(".", ",") : String(value);
+//Shows a number with the decimal separator of the language, e.g. 79.5 -> "79,5" in Italian
+function format(value, decimals, language) {
+  return numberToText(decimals ? value.toFixed(decimals) : value, language);
 }
 
 //Horizontal ruler: scrolling it raises or lowers the value, shown big above the ruler
@@ -22,6 +23,7 @@ export default function RulerPicker({
   labelStep = 10,
 }) {
   const styles = useStyles(createStyles);
+  const { language } = useLanguage();
   const [width, setWidth] = useState(0);
   const scrollRef = useRef(null);
   const placed = useRef(false);
@@ -82,7 +84,7 @@ export default function RulerPicker({
   return (
     <View style={styles.container}>
       <View style={styles.valueRow}>
-        <Text style={styles.value}>{format(value, decimals)}</Text>
+        <Text style={styles.value}>{format(value, decimals, language)}</Text>
         {unit && <Text style={styles.unit}>{unit}</Text>}
       </View>
 

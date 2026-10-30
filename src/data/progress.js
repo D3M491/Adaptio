@@ -10,6 +10,8 @@ const progress = {
   personal: { name: "Manuel", age: 27, height: 178 },
   // Id of the workout chosen in the Workout tab, null until the user sets one
   currentWorkoutId: null,
+  //Day the rotation of the workout days starts ("YYYY-MM-DD"), set with the workout
+  currentWorkoutStart: null,
   // Answers of the first-launch form, used later to suggest workout plans:
   // goal is "mass" | "fat" | "strength", level "beginner" | "intermediate" | "advanced",
   // place "gym" | "home" | "both". weekdays are the days chosen to train: 0 = Sunday ... 6 = Saturday
@@ -20,8 +22,10 @@ const progress = {
     level: null,
     place: null,
   },
-  // App settings, edited in the Settings tab. theme is "dark" | "light" | "system"
+  // App settings, edited in the Settings tab. theme is "dark" | "light" | "system",
+  // language is "auto" (the phone's, Italian or English) | "it" | "en"
   settings: {
+    language: "auto",
     keepAwake: true,
     restNotification: true,
     reminderEnabled: false,

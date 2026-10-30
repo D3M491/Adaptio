@@ -1,9 +1,12 @@
 import { View, Text, TextInput, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
-import { useColors, useStyles } from "../../theme";
+import { useColors, useStyles, glassCard } from "../../theme";
 import { useProfile } from "../../data/ProfileContext";
 import NumberField from "../components/NumberField";
+import GlassBackground from "../components/GlassBackground";
+import { TAB_BAR_SPACE } from "../components/GlassTabBar";
+import { useT, entryName } from "../../i18n";
 
 //A row with the starting and the current value of an entry, e.g. a max
 function EntryRow({ label, entry, unit, onChange, first }) {
@@ -30,11 +33,16 @@ function EntryRow({ label, entry, unit, onChange, first }) {
 //Column titles shown above the entry rows
 function EntryHeader() {
   const styles = useStyles(createStyles);
+  const t = useT();
   return (
     <View style={styles.entryHeader}>
       <View style={styles.rowLabel} />
-      <Text style={[styles.columnLabel, styles.entryField]}>INIZIALE</Text>
-      <Text style={[styles.columnLabel, styles.entryField]}>ATTUALE</Text>
+      <Text style={[styles.columnLabel, styles.entryField]}>
+        {t("profile.initial")}
+      </Text>
+      <Text style={[styles.columnLabel, styles.entryField]}>
+        {t("profile.current")}
+      </Text>
     </View>
   );
 }
@@ -42,6 +50,7 @@ function EntryHeader() {
 export default function ProfileTab() {
   const colors = useColors();
   const styles = useStyles(createStyles);
+  const t = useT();
   //A plain View with the insets keeps the ScrollView bounded inside the tab pager
   const insets = useSafeAreaInsets();
   const { profile, updatePersonal, updateWeight, updateEntry } = useProfile();
@@ -58,6 +67,7 @@ export default function ProfileTab() {
 
   return (
     <View style={[styles.body, { paddingTop: insets.top }]}>
+      <GlassBackground />
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -74,15 +84,18 @@ export default function ProfileTab() {
           <View>
             <Text style={styles.name}>{personal.name}</Text>
             <Text style={styles.heroDetails}>
-              {personal.age} anni · {personal.height} cm
+              {t("profile.details", {
+                age: personal.age,
+                height: personal.height,
+              })}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.sectionText}>DATI PERSONALI</Text>
+        <Text style={styles.sectionText}>{t("profile.personal")}</Text>
         <View style={styles.card}>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Nome</Text>
+            <Text style={styles.rowLabel}>{t("profile.name")}</Text>
             <TextInput
               style={[styles.textField, styles.personalField]}
               value={name}
@@ -94,16 +107,16 @@ export default function ProfileTab() {
             />
           </View>
           <View style={[styles.row, styles.rowDivider]}>
-            <Text style={styles.rowLabel}>Età</Text>
+            <Text style={styles.rowLabel}>{t("profile.age")}</Text>
             <NumberField
               style={styles.personalField}
               value={personal.age}
-              unit="anni"
+              unit={t("profile.years")}
               onChange={(value) => updatePersonal("age", value)}
             />
           </View>
           <View style={[styles.row, styles.rowDivider]}>
-            <Text style={styles.rowLabel}>Altezza</Text>
+            <Text style={styles.rowLabel}>{t("profile.height")}</Text>
             <NumberField
               style={styles.personalField}
               value={personal.height}
@@ -113,26 +126,26 @@ export default function ProfileTab() {
           </View>
         </View>
 
-        <Text style={styles.sectionText}>PESO CORPOREO</Text>
+        <Text style={styles.sectionText}>{t("profile.bodyWeight")}</Text>
         <View style={styles.card}>
           <EntryHeader />
           <EntryRow
             first
-            label="Peso"
+            label={t("profile.weight")}
             entry={weight}
             unit="kg"
             onChange={updateWeight}
           />
         </View>
 
-        <Text style={styles.sectionText}>MASSIMALI</Text>
+        <Text style={styles.sectionText}>{t("profile.maxes")}</Text>
         <View style={styles.card}>
           <EntryHeader />
           {maxes.map((max, i) => (
             <EntryRow
               key={max.name}
               first={i === 0}
-              label={max.name}
+              label={entryName(t, max.name)}
               entry={max}
               unit="kg"
               onChange={(field, value) => updateEntry("maxes", i, field, value)}
@@ -140,14 +153,14 @@ export default function ProfileTab() {
           ))}
         </View>
 
-        <Text style={styles.sectionText}>CIRCONFERENZE</Text>
+        <Text style={styles.sectionText}>{t("profile.measurements")}</Text>
         <View style={styles.card}>
           <EntryHeader />
           {measurements.map((measurement, i) => (
             <EntryRow
               key={measurement.name}
               first={i === 0}
-              label={measurement.name}
+              label={entryName(t, measurement.name)}
               entry={measurement}
               unit="cm"
               onChange={(field, value) =>
@@ -170,7 +183,7 @@ const createStyles = (colors) =>
 
     content: {
       padding: 20,
-      paddingBottom: 30,
+      paddingBottom: TAB_BAR_SPACE,
       gap: 10,
     },
 
@@ -212,11 +225,10 @@ const createStyles = (colors) =>
     },
 
     card: {
+      ...glassCard(colors),
       paddingHorizontal: 16,
       paddingVertical: 6,
-      borderColor: colors.secondaryDark,
-      borderWidth: 1,
-      borderRadius: 14,
+      borderRadius: 18,
     },
 
     row: {

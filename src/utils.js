@@ -1,9 +1,5 @@
-import { getLocales } from "expo-localization";
-
-//Calculate 7 days from today
-export default function week() {
-  const lang = getLocales()[0]?.languageTag ?? "en-EN";
-
+//Calculate 7 days from today. The names of the days follow the locale (e.g. "it-IT", "en-US")
+export default function week(lang) {
   const days = [];
   const today = new Date();
 
@@ -26,12 +22,14 @@ export default function week() {
     const dayNumber = day.getDate();
 
     return {
-      key: day.toLocaleDateString(),
+      //The same in every language, so the selected day doesn't change with it
+      key: day.toDateString(),
+      date: day,
       dayNumber: dayNumber,
       //0 is Sunday ... 6 is Saturday
       weekday: day.getDay(),
       dayName: dayName[0].toUpperCase() + dayName.slice(1),
-      today: today.toLocaleDateString(),
+      today: today.toDateString(),
     };
   });
 

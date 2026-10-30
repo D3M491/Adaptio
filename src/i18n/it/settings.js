@@ -1,0 +1,20 @@
+export default {
+  title: "Impostazioni",
+  training: "ALLENAMENTO",
+  trainingDays: "Giorni di allenamento",
+  keepAwake: "Schermo sempre acceso",
+  keepAwakeNote: "Durante l'allenamento, per vedere sempre il timer di recupero",
+  notifications: "NOTIFICHE",
+  restEnd: "Fine pausa",
+  restEndNote: "Ti avvisa quando il recupero è finito, anche a telefono bloccato",
+  reminder: "Promemoria allenamento",
+  reminderNote: "Nei giorni di allenamento che hai scelto",
+  reminderTime: "Ora del promemoria",
+  appearance: "ASPETTO",
+  theme: "Tema",
+  themes: { dark: "Scuro", light: "Chiaro", system: "Automatico" },
+  languageSection: "LINGUA",
+  language: "Lingua",
+  //The names of the languages are written in their own language, except the automatic choice
+  languages: { auto: "Automatica", it: "Italiano", en: "English" },
+};

@@ -1,32 +1,29 @@
 import { View, Text, ScrollView, Pressable, Switch, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColors, useStyles } from "../../theme";
+import { useColors, useStyles, glassCard, glassChip } from "../../theme";
 import { useProfile } from "../../data/ProfileContext";
 import ProBadge from "../components/ProBadge";
+import GlassBackground from "../components/GlassBackground";
+import { TAB_BAR_SPACE } from "../components/GlassTabBar";
+import { useT, useLanguage } from "../../i18n";
 
 //Monday first, with the number the days have in JavaScript (0 is Sunday)
-const WEEKDAYS = [
-  { value: 1, label: "Lun" },
-  { value: 2, label: "Mar" },
-  { value: 3, label: "Mer" },
-  { value: 4, label: "Gio" },
-  { value: 5, label: "Ven" },
-  { value: 6, label: "Sab" },
-  { value: 0, label: "Dom" },
-];
+const WEEKDAY_NUMBERS = [1, 2, 3, 4, 5, 6, 0];
 
-const THEMES = [
-  { value: "dark", label: "Scuro" },
-  { value: "light", label: "Chiaro" },
-  { value: "system", label: "Automatico" },
-];
+const THEMES = ["dark", "light", "system"];
+
+//"auto" follows the language of the phone
+const LANGUAGES = ["auto", "it", "en"];
 
 //The reminder time moves by half an hour at a time
 const TIME_STEP = 30;
 
-//e.g. 18, 0 -> "18:00"
-function formatTime(hour, minute) {
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+//e.g. 18, 0 -> "18:00" in Italian, "6:00 PM" in English
+function formatTime(hour, minute, locale) {
+  return new Date(2000, 0, 1, hour, minute).toLocaleTimeString(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 //A row with a title, a short explanation and a switch
@@ -51,6 +48,8 @@ function SwitchRow({ title, description, value, onValueChange, first }) {
 
 export default function Settings() {
   const styles = useStyles(createStyles);
+  const t = useT();
+  const { locale } = useLanguage();
   //A plain View with the insets keeps the ScrollView bounded inside the tab pager
   const insets = useSafeAreaInsets();
   const { profile, updateSetting, updateTrainingDays } = useProfile();
@@ -79,26 +78,27 @@ export default function Settings() {
 
   return (
     <View style={[styles.body, { paddingTop: insets.top }]}>
+      <GlassBackground />
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Impostazioni</Text>
+          <Text style={styles.title}>{t("settings.title")}</Text>
           <ProBadge></ProBadge>
         </View>
 
-        <Text style={styles.sectionText}>ALLENAMENTO</Text>
+        <Text style={styles.sectionText}>{t("settings.training")}</Text>
         <View style={styles.card}>
           <View style={styles.block}>
-            <Text style={styles.rowTitle}>Giorni di allenamento</Text>
+            <Text style={styles.rowTitle}>{t("settings.trainingDays")}</Text>
             <View style={styles.weekdays}>
-              {WEEKDAYS.map((weekday) => {
-                const isSelected = weekdays.includes(weekday.value);
+              {WEEKDAY_NUMBERS.map((weekday) => {
+                const isSelected = weekdays.includes(weekday);
                 return (
                   <Pressable
-                    key={weekday.value}
-                    onPress={() => toggleWeekday(weekday.value)}
+                    key={weekday}
+                    onPress={() => toggleWeekday(weekday)}
                     style={[styles.weekday, isSelected && styles.selected]}
                   >
                     <Text
@@ -107,7 +107,7 @@ export default function Settings() {
                         isSelected && styles.selectedText,
                       ]}
                     >
-                      {weekday.label}
+                      {t(`weekdays.${weekday}`)}
                     </Text>
                   </Pressable>
                 );
@@ -115,31 +115,31 @@ export default function Settings() {
             </View>
           </View>
           <SwitchRow
-            title="Schermo sempre acceso"
-            description="Durante l'allenamento, per vedere sempre il timer di recupero"
+            title={t("settings.keepAwake")}
+            description={t("settings.keepAwakeNote")}
             value={settings.keepAwake}
             onValueChange={(value) => updateSetting("keepAwake", value)}
           />
         </View>
 
-        <Text style={styles.sectionText}>NOTIFICHE</Text>
+        <Text style={styles.sectionText}>{t("settings.notifications")}</Text>
         <View style={styles.card}>
           <SwitchRow
             first
-            title="Fine pausa"
-            description="Ti avvisa quando il recupero è finito, anche a telefono bloccato"
+            title={t("settings.restEnd")}
+            description={t("settings.restEndNote")}
             value={settings.restNotification}
             onValueChange={(value) => updateSetting("restNotification", value)}
           />
           <SwitchRow
-            title="Promemoria allenamento"
-            description="Nei giorni di allenamento che hai scelto"
+            title={t("settings.reminder")}
+            description={t("settings.reminderNote")}
             value={settings.reminderEnabled}
             onValueChange={(value) => updateSetting("reminderEnabled", value)}
           />
           {settings.reminderEnabled && (
             <View style={[styles.row, styles.rowDivider]}>
-              <Text style={styles.rowTitle}>Ora del promemoria</Text>
+              <Text style={styles.rowTitle}>{t("settings.reminderTime")}</Text>
               <View style={styles.stepper}>
                 <Pressable
                   hitSlop={8}
@@ -148,7 +148,7 @@ export default function Settings() {
                   <Text style={styles.stepperButton}>−</Text>
                 </Pressable>
                 <Text style={styles.stepperValue}>
-                  {formatTime(settings.reminderHour, settings.reminderMinute)}
+                  {formatTime(settings.reminderHour, settings.reminderMinute, locale)}
                 </Text>
                 <Pressable
                   hitSlop={8}
@@ -161,17 +161,17 @@ export default function Settings() {
           )}
         </View>
 
-        <Text style={styles.sectionText}>ASPETTO</Text>
+        <Text style={styles.sectionText}>{t("settings.appearance")}</Text>
         <View style={styles.card}>
           <View style={styles.block}>
-            <Text style={styles.rowTitle}>Tema</Text>
+            <Text style={styles.rowTitle}>{t("settings.theme")}</Text>
             <View style={styles.segmented}>
               {THEMES.map((theme) => {
-                const isSelected = settings.theme === theme.value;
+                const isSelected = settings.theme === theme;
                 return (
                   <Pressable
-                    key={theme.value}
-                    onPress={() => updateSetting("theme", theme.value)}
+                    key={theme}
+                    onPress={() => updateSetting("theme", theme)}
                     style={[styles.segment, isSelected && styles.selected]}
                   >
                     <Text
@@ -180,7 +180,35 @@ export default function Settings() {
                         isSelected && styles.selectedText,
                       ]}
                     >
-                      {theme.label}
+                      {t(`settings.themes.${theme}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.sectionText}>{t("settings.languageSection")}</Text>
+        <View style={styles.card}>
+          <View style={styles.block}>
+            <Text style={styles.rowTitle}>{t("settings.language")}</Text>
+            <View style={styles.segmented}>
+              {LANGUAGES.map((language) => {
+                const isSelected = (settings.language ?? "auto") === language;
+                return (
+                  <Pressable
+                    key={language}
+                    onPress={() => updateSetting("language", language)}
+                    style={[styles.segment, isSelected && styles.selected]}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        isSelected && styles.selectedText,
+                      ]}
+                    >
+                      {t(`settings.languages.${language}`)}
                     </Text>
                   </Pressable>
                 );
@@ -202,7 +230,7 @@ const createStyles = (colors) =>
 
     content: {
       padding: 20,
-      paddingBottom: 30,
+      paddingBottom: TAB_BAR_SPACE,
       gap: 10,
     },
 
@@ -223,9 +251,8 @@ const createStyles = (colors) =>
     },
 
     card: {
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
-      borderRadius: 14,
+      ...glassCard(colors),
+      borderRadius: 18,
       paddingHorizontal: 16,
     },
 
@@ -272,8 +299,7 @@ const createStyles = (colors) =>
       height: 48,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
+      ...glassChip(colors),
       borderRadius: 12,
     },
 
@@ -284,6 +310,7 @@ const createStyles = (colors) =>
 
     selected: {
       borderColor: colors.tertiary,
+      borderTopColor: colors.tertiary,
       backgroundColor: "#b92e342e",
     },
 
@@ -320,8 +347,7 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: "center",
       paddingVertical: 10,
-      borderWidth: 1,
-      borderColor: colors.secondaryDark,
+      ...glassChip(colors),
       borderRadius: 12,
     },
 
