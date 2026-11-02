@@ -1,10 +1,15 @@
-import { View, Text, TextInput, ScrollView, StyleSheet } from "react-native";
+import { View, Text, TextInput, ScrollView, Pressable, StyleSheet } from "react-native";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { File, Paths } from "expo-file-system";
+import { Camera } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import { useColors, useStyles, glassCard } from "../../theme";
 import { useProfile } from "../../data/ProfileContext";
 import NumberField from "../components/NumberField";
 import GlassBackground from "../components/GlassBackground";
+import ConfirmDialog from "../components/ConfirmDialog";
 import { TAB_BAR_SPACE } from "../components/GlassTabBar";
 import { useT, entryName } from "../../i18n";
 
@@ -60,6 +65,45 @@ export default function ProfileTab() {
   const [name, setName] = useState(personal.name);
   useEffect(() => setName(personal.name), [personal.name]);
 
+  //Picks a square photo from the library and keeps a copy in the documents of the app: the
+  //picker's own file is in the cache, which the system can empty
+  //Without a photo the avatar goes straight to the library, with one it asks what to do
+  const [photoMenu, setPhotoMenu] = useState(false);
+
+  async function pickPhoto() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (result.canceled) return;
+
+    try {
+      const saved = new File(Paths.document, `profile-photo-${Date.now()}.jpg`);
+      new File(result.assets[0].uri).copy(saved);
+      if (personal.photo) {
+        const old = new File(personal.photo);
+        if (old.exists) old.delete();
+      }
+      updatePersonal("photo", saved.uri);
+    } catch {
+      //The photo could not be saved: the previous one stays
+    }
+  }
+
+  //Deletes the saved file and goes back to the initial of the name
+  function removePhoto() {
+    setPhotoMenu(false);
+    try {
+      const file = new File(personal.photo);
+      if (file.exists) file.delete();
+    } catch {
+      //The file is already gone
+    }
+    updatePersonal("photo", null);
+  }
+
   function commitName() {
     if (name.trim()) updatePersonal("name", name.trim());
     else setName(personal.name);
@@ -76,11 +120,22 @@ export default function ProfileTab() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {personal.name[0]?.toUpperCase()}
-            </Text>
-          </View>
+          {/* Tapping the avatar changes the photo */}
+          <Pressable
+            onPress={() => (personal.photo ? setPhotoMenu(true) : pickPhoto())}
+            style={styles.avatar}
+          >
+            {personal.photo ? (
+              <Image source={{ uri: personal.photo }} style={styles.avatarImage} />
+            ) : (
+              <Text style={styles.avatarText}>
+                {personal.name[0]?.toUpperCase()}
+              </Text>
+            )}
+            <View style={styles.avatarBadge}>
+              <Camera size={12} color={colors.onTertiary} />
+            </View>
+          </Pressable>
           <View>
             <Text style={styles.name}>{personal.name}</Text>
             <Text style={styles.heroDetails}>
@@ -170,6 +225,22 @@ export default function ProfileTab() {
           ))}
         </View>
       </ScrollView>
+
+      <ConfirmDialog
+        visible={photoMenu}
+        title={t("profile.photoTitle")}
+        confirmText={t("profile.photoChange")}
+        onConfirm={() => {
+          setPhotoMenu(false);
+          //iOS can't open the library while the dialog is still closing: wait for it
+          setTimeout(pickPhoto, 500);
+        }}
+        onCancel={() => setPhotoMenu(false)}
+      >
+        <Pressable onPress={removePhoto} style={styles.photoRemove}>
+          <Text style={styles.photoRemoveText}>{t("profile.photoRemove")}</Text>
+        </Pressable>
+      </ConfirmDialog>
     </View>
   );
 }
@@ -202,6 +273,36 @@ const createStyles = (colors) =>
       justifyContent: "center",
       borderWidth: 1,
       borderColor: colors.tertiary,
+    },
+
+    avatarImage: {
+      width: 62,
+      height: 62,
+      borderRadius: 31,
+    },
+
+    //Small camera on the corner, it tells the photo can be changed
+    avatarBadge: {
+      position: "absolute",
+      right: -4,
+      bottom: -4,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.tertiary,
+    },
+
+    photoRemove: {
+      alignItems: "center",
+      paddingVertical: 12,
+      marginTop: 8,
+    },
+
+    photoRemoveText: {
+      color: colors.tertiary,
+      fontWeight: "600",
     },
 
     avatarText: {

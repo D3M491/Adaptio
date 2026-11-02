@@ -13,9 +13,9 @@ import { useState, useEffect } from "react";
 import { X, Check, Timer } from "lucide-react-native";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { useColors, useStyles } from "../theme";
-import { getWorkoutById, exerciseLabel } from "../data/workouts";
+import { getWorkoutById, exerciseLabel, todayKey } from "../data/workouts";
 import { useProfile } from "../data/ProfileContext";
-import { useT, useLanguage } from "../i18n";
+import { useT, useLanguage, parseNumber } from "../i18n";
 import { scheduleRestEnd, cancelNotification } from "../notifications";
 import ConfirmDialog from "./components/ConfirmDialog";
 import WorkoutSummary from "./components/WorkoutSummary";
@@ -85,7 +85,8 @@ export default function WorkoutSession() {
 
   const t = useT();
   const { language } = useLanguage();
-  const { keepAwake, restNotification } = useProfile().profile.settings;
+  const { profile, saveLoads, markCompleted } = useProfile();
+  const { keepAwake, restNotification } = profile.settings;
 
   //Keeps the screen on during the workout, so the rest timer stays visible
   useEffect(() => {
@@ -134,6 +135,10 @@ export default function WorkoutSession() {
   const remainingExercises = sets.filter((exerciseSets) =>
     exerciseSets.some((set) => !set.done),
   ).length;
+  //The exercise to do now is the first one with sets left, it gets a red border (-1 when all done)
+  const activeExercise = sets.findIndex((exerciseSets) =>
+    exerciseSets.some((set) => !set.done),
+  );
 
   function updateSet(exerciseIndex, setIndex, changes) {
     setSets((prev) =>
@@ -171,8 +176,20 @@ export default function WorkoutSession() {
     router.back();
   }
 
-  //Todo save the session for the progress and the AI progressions
+  //Todo save the whole session for the progress and the AI progressions
   function finish() {
+    //Only the heaviest load of every exercise is kept, to show it the next time
+    const loads = {};
+    workoutDay.exercises.forEach((exercise, index) => {
+      const weights = sets[index]
+        .filter((set) => set.done)
+        .map((set) => parseNumber(set.weight))
+        .filter((weight) => weight > 0);
+      if (weights.length > 0) loads[exercise.exerciseName] = Math.max(...weights);
+    });
+    saveLoads(loads);
+    markCompleted(todayKey(), { workoutId, day: Number(day) });
+
     Keyboard.dismiss();
     setDialog(null);
     setRestEnd(null);
@@ -237,7 +254,13 @@ export default function WorkoutSession() {
         showsVerticalScrollIndicator={false}
       >
         {workoutDay.exercises.map((exercise, exerciseIndex) => (
-          <View key={`${exercise.exerciseName}-${exerciseIndex}`} style={styles.exercise}>
+          <View
+            key={`${exercise.exerciseName}-${exerciseIndex}`}
+            style={[
+              styles.exercise,
+              exerciseIndex === activeExercise && styles.exerciseActive,
+            ]}
+          >
             <Text style={styles.exerciseName}>
               {exerciseLabel(exercise, language)}
             </Text>
@@ -472,6 +495,13 @@ const createStyles = (colors) =>
       borderColor: colors.secondaryDark,
       borderWidth: 1,
       borderRadius: 14,
+    },
+
+    //Thicker border, the padding is one less so the card keeps its size
+    exerciseActive: {
+      borderColor: colors.tertiary,
+      borderWidth: 2,
+      padding: 19,
     },
 
     exerciseName: {

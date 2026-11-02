@@ -33,7 +33,13 @@
           "imageWidth": 120
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Adaptio usa le tue foto per l'immagine del profilo."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

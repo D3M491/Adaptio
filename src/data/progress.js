@@ -12,6 +12,10 @@ const progress = {
   currentWorkoutId: null,
   //Day the rotation of the workout days starts ("YYYY-MM-DD"), set with the workout
   currentWorkoutStart: null,
+  //The heaviest load done the last time on every exercise, by exercise name: { "Squat": 80 }
+  lastLoads: {},
+  //The workouts finished, by day: { "2026-11-02": { workoutId: "full-body", day: 2 } }
+  completedWorkouts: {},
   // Answers of the first-launch form, used later to suggest workout plans:
   // goal is "mass" | "fat" | "strength", level "beginner" | "intermediate" | "advanced",
   // place "gym" | "home" | "both". weekdays are the days chosen to train: 0 = Sunday ... 6 = Saturday

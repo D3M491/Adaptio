@@ -1,5 +1,5 @@
 export default {
-  title: "Workout",
+  title: "Workout library",
   section: "WORKOUT",
   current: "CURRENT",
   currentSection: "CURRENT WORKOUT",
@@ -8,6 +8,8 @@ export default {
   none: "No workout set, choose one below",
   setWorkout: "Set workout",
   restDay: "Rest day",
+  completed: "Workout completed",
+  lastLoad: "Last: {weight} kg",
   filterLabel: "Frequency",
   filterQuestion: "How many days?",
   filterReset: "Reset",

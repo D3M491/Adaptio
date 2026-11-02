@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView } from "react-native";
+import { StyleSheet, Text, View, ScrollView, AppState } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStyles } from "../../theme";
 import { useRef, useEffect, useState } from "react";
@@ -21,9 +21,24 @@ export default function Tab() {
   const insets = useSafeAreaInsets();
   const { profile, justOnboarded } = useProfile();
 
-  //The day selected in the week, today at the start: the workout shown depends on it
-  const [selectedKey, setSelectedKey] = useState(() => week(locale)[0].today);
-  const selectedDay = week(locale).find((day) => day.key === selectedKey);
+  //The day the user picked in the week, null until then: the workout shown depends on it
+  const [pickedKey, setPickedKey] = useState(null);
+  //Counts the returns to the app, so the home is drawn again (and follows a new day) after the
+  //phone was left with the app open overnight
+  const [, setReturns] = useState(0);
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") setReturns((count) => count + 1);
+    });
+    return () => subscription.remove();
+  }, []);
+
+  //Without a pick, or when the picked day is gone from the week, the day is today
+  const days = week(locale);
+  const selectedDay =
+    days.find((day) => day.key === pickedKey) ??
+    days.find((day) => day.key === day.today);
+  const selectedKey = selectedDay.key;
 
   //Runs once when the component mounts
   useEffect(() => {
@@ -51,7 +66,7 @@ export default function Tab() {
         <Week
           ref={scrollRef}
           activeDay={selectedKey}
-          onSelect={setSelectedKey}
+          onSelect={setPickedKey}
         ></Week>
         <Workout
           type="preview"

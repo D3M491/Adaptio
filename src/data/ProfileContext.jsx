@@ -118,6 +118,23 @@ export function ProfileProvider({ children }) {
     }));
   }
 
+  // Keeps the loads of a finished workout, e.g. saveLoads({ "Squat": 80 }): they replace the
+  // ones of the same exercises, the others stay
+  function saveLoads(loads) {
+    setProfile((prev) => ({
+      ...prev,
+      lastLoads: { ...prev.lastLoads, ...loads },
+    }));
+  }
+
+  // Remembers the workout finished on a day, e.g. markCompleted("2026-11-02", { workoutId, day })
+  function markCompleted(date, completed) {
+    setProfile((prev) => ({
+      ...prev,
+      completedWorkouts: { ...prev.completedWorkouts, [date]: completed },
+    }));
+  }
+
   // Sets the workout shown on the home and used by Start, e.g. selectWorkout("full-body")
   function selectWorkout(id) {
     setProfile((prev) => ({
@@ -157,6 +174,8 @@ export function ProfileProvider({ children }) {
         selectWorkout,
         updateSetting,
         updateTrainingDays,
+        saveLoads,
+        markCompleted,
       }}
     >
       {children}

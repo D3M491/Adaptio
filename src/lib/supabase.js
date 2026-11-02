@@ -12,9 +12,11 @@ export const supabase =
   url && key
     ? createClient(url, key, {
         auth: {
-          storage: AsyncStorage,
-          autoRefreshToken: true,
-          persistSession: true,
+          //The web version is first prepared on the computer (no window there), where there is
+          //no storage to keep the session in
+          storage: typeof window === "undefined" ? undefined : AsyncStorage,
+          autoRefreshToken: typeof window !== "undefined",
+          persistSession: typeof window !== "undefined",
           detectSessionInUrl: false,
         },
       })

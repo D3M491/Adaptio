@@ -2,17 +2,18 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { ChevronDown, ChevronUp, ChevronRight, Moon } from "lucide-react-native";
+import { ChevronDown, ChevronUp, ChevronRight, Moon, CircleCheck } from "lucide-react-native";
 import { useColors, useStyles, glassCard, glassChip } from "../../theme";
 import {
   getWorkouts,
   getWorkoutById,
   getWorkoutDayForDate,
+  dateKey,
   exerciseLabel,
 } from "../../data/workouts";
 import { useProfile } from "../../data/ProfileContext";
 import ProBadge from "./ProBadge";
-import { useT, useLanguage } from "../../i18n";
+import { useT, useLanguage, formatNumber } from "../../i18n";
 import SourceTag from "./SourceTag";
 import ConfirmDialog from "./ConfirmDialog";
 import RatingSummary from "./RatingSummary";
@@ -96,6 +97,14 @@ export default function Workout({ type, selectedDate }) {
           profile.currentWorkoutStart,
         );
 
+  //A workout already finished on the selected day: the home shows it as done
+  const completed = selectedDate
+    ? profile.completedWorkouts?.[dateKey(selectedDate)]
+    : undefined;
+  const completedDay = completed
+    ? getWorkoutById(completed.workoutId)?.days.find((d) => d.day === completed.day)
+    : undefined;
+
   //The note under "Rest day" says "today" only for today
   const isToday = selectedDate?.toDateString() === new Date().toDateString();
 
@@ -164,7 +173,19 @@ export default function Workout({ type, selectedDate }) {
   const todayWorkout = (
     <View type={type}>
       <Text style={styles.sectionText}>{t("workout.section")}</Text>
-      {isRestDay ? (
+      {completed ? (
+        <View style={[styles.workoutPreview, styles.restCard]}>
+          <CircleCheck size={26} color={colors.tertiary} />
+          <View>
+            <Text style={styles.restTitle}>{t("workout.completed")}</Text>
+            {completedDay && (
+              <Text style={styles.restNote}>
+                {t("workout.dayLabel", { n: completedDay.day })} · {completedDay.name}
+              </Text>
+            )}
+          </View>
+        </View>
+      ) : isRestDay ? (
         <>
         <View style={[styles.workoutPreview, styles.restCard]}>
           <Moon size={22} color={colors.secondaryDark} />
@@ -220,9 +241,17 @@ export default function Workout({ type, selectedDate }) {
               key={`${exercise.exerciseName}-${index}`}
               style={styles.previewExercise}
             >
-              <Text style={styles.exerciseName}>
+              <Text style={[styles.exerciseName, styles.previewName]}>
                 {exerciseLabel(exercise, language)}
               </Text>
+              {/* The load of the last time, once the exercise was done: between the name and the sets */}
+              {profile.lastLoads?.[exercise.exerciseName] && (
+                <Text style={styles.lastLoad}>
+                  {t("workout.lastLoad", {
+                    weight: formatNumber(profile.lastLoads[exercise.exerciseName], language),
+                  })}
+                </Text>
+              )}
               <Text style={styles.exerciseDetails}>
                 {exercise.sets} x {exercise.reps}
               </Text>
@@ -686,6 +715,16 @@ const createStyles = (colors) =>
       flexDirection: "row",
       justifyContent: "space-between",
       marginTop: 8,
+    },
+    //Name and load share the free space, so the load sits in the middle of the row
+    previewName: {
+      flex: 1,
+    },
+    lastLoad: {
+      flex: 1,
+      textAlign: "center",
+      color: colors.tertiary,
+      fontSize: 13,
     },
     toggle: {
       flexDirection: "row",

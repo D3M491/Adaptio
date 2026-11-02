@@ -243,11 +243,15 @@ export function getWorkoutDayForDate(workout, weekdays, date, startDate) {
   return workout.days[((position % total) + total) % total];
 }
 
-//Today as "YYYY-MM-DD" in the local time
-export function todayKey() {
-  const now = new Date();
+//A date as "YYYY-MM-DD" in the local time
+export function dateKey(date) {
   const pad = (value) => String(value).padStart(2, "0");
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+//Today as "YYYY-MM-DD"
+export function todayKey() {
+  return dateKey(new Date());
 }
 
 // The name of an exercise in a language ("it" or "en"). The imported workouts have it in both,
