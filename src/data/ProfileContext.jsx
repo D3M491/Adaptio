@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { File } from "expo-file-system";
 import { getProgress, LEGACY_DEMO_VALUES } from "./progress";
 import { todayKey } from "./workouts";
 
@@ -127,6 +128,14 @@ export function ProfileProvider({ children }) {
     }));
   }
 
+  // Adds a finished workout to the history, the newest first
+  function saveSession(session) {
+    setProfile((prev) => ({
+      ...prev,
+      sessions: [session, ...(prev.sessions ?? [])],
+    }));
+  }
+
   // Remembers the workout finished on a day, e.g. markCompleted("2026-11-02", { workoutId, day })
   function markCompleted(date, completed) {
     setProfile((prev) => ({
@@ -159,6 +168,22 @@ export function ProfileProvider({ children }) {
     }));
   }
 
+  // Deletes everything saved on the phone (profile, history, photo) and goes back to the
+  // first-launch form
+  async function resetProfile() {
+    try {
+      if (profile.personal.photo) {
+        const photo = new File(profile.personal.photo);
+        if (photo.exists) photo.delete();
+      }
+    } catch {
+      // The file is already gone
+    }
+    await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+    setJustOnboarded(false);
+    setProfile(getProgress());
+  }
+
   // Wait for the saved data, so the screens don't flash the starting values
   if (!loaded) return null;
 
@@ -176,6 +201,8 @@ export function ProfileProvider({ children }) {
         updateTrainingDays,
         saveLoads,
         markCompleted,
+        saveSession,
+        resetProfile,
       }}
     >
       {children}

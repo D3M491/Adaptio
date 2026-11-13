@@ -16,4 +16,17 @@ export default {
   languageSection: "LANGUAGE",
   language: "Language",
   languages: { auto: "Automatic", it: "Italiano", en: "English" },
+  privacySection: "PRIVACY AND DATA",
+  privacyPolicy: "Privacy policy",
+  privacyPolicyNote: "Which data the app uses and how it is handled",
+  deleteData: "Delete all my data",
+  deleteDataNote: "Profile, workouts, photo and workout ratings",
+  deleteTitle: "Delete all data?",
+  deleteMessage:
+    "Your profile, workout history, photo, maxes, measurements and your ratings of the workouts will be deleted. This can't be undone and the app starts again from the beginning.",
+  deleteConfirm: "Delete",
+  deleteErrorTitle: "Deletion failed",
+  deleteError:
+    "Your online ratings could not be deleted. Check the connection and try again: nothing is deleted until it works.",
+  deleteRetry: "Try again",
 };

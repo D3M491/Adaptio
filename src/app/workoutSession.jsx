@@ -85,7 +85,7 @@ export default function WorkoutSession() {
 
   const t = useT();
   const { language } = useLanguage();
-  const { profile, saveLoads, markCompleted } = useProfile();
+  const { profile, saveLoads, markCompleted, saveSession } = useProfile();
   const { keepAwake, restNotification } = profile.settings;
 
   //Keeps the screen on during the workout, so the rest timer stays visible
@@ -176,7 +176,6 @@ export default function WorkoutSession() {
     router.back();
   }
 
-  //Todo save the whole session for the progress and the AI progressions
   function finish() {
     //Only the heaviest load of every exercise is kept, to show it the next time
     const loads = {};
@@ -189,6 +188,35 @@ export default function WorkoutSession() {
     });
     saveLoads(loads);
     markCompleted(todayKey(), { workoutId, day: Number(day) });
+
+    //The whole session, only with the sets that were done
+    const endedAt = Date.now();
+    const doneSets = sets.flat().filter((set) => set.done);
+    saveSession({
+      id: endedAt,
+      date: todayKey(),
+      workoutId,
+      workoutName: getWorkoutById(workoutId).name,
+      day: workoutDay.day,
+      dayName: workoutDay.name,
+      durationSec: Math.floor((endedAt - startTime) / 1000),
+      doneExercises: sets.filter((exerciseSets) => exerciseSets.every((set) => set.done)).length,
+      totalExercises: workoutDay.exercises.length,
+      volume: doneSets.reduce(
+        (total, set) => total + (parseNumber(set.weight) || 0) * (Number(set.reps) || 0),
+        0,
+      ),
+      exercises: workoutDay.exercises.map((exercise, index) => ({
+        name: exercise.exerciseName,
+        note: notes[index] ?? "",
+        sets: sets[index]
+          .filter((set) => set.done)
+          .map((set) => ({
+            weight: parseNumber(set.weight) || 0,
+            reps: Number(set.reps) || 0,
+          })),
+      })),
+    });
 
     Keyboard.dismiss();
     setDialog(null);

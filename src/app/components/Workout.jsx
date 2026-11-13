@@ -111,9 +111,12 @@ export default function Workout({ type, selectedDate }) {
   //A workout is set but nothing is planned on the selected day
   const isRestDay = currentWorkout !== undefined && !nextDay;
 
-  //On a rest day today, the day to suggest is the one of the next training day
+  //Today only: the day to suggest is the planned one, or on a rest day the one of the next
+  //training day
   const suggestedDay = (() => {
-    if (!isRestDay || !isToday) return undefined;
+    if (!isToday) return undefined;
+    if (nextDay) return nextDay;
+    if (!isRestDay) return undefined;
     for (let i = 1; i <= 7; i++) {
       const date = new Date();
       date.setDate(date.getDate() + i);
@@ -207,7 +210,8 @@ export default function Workout({ type, selectedDate }) {
         )}
         </>
       ) : nextDay ? (
-        // Tapping the card expands it, only the Start button starts the workout
+        <>
+        {/* Tapping the card expands it, only the Start button starts the workout */}
         <Pressable
           disabled={hiddenCount === 0}
           onPress={() => setExpanded(!expanded)}
@@ -271,6 +275,16 @@ export default function Workout({ type, selectedDate }) {
             </View>
           )}
         </Pressable>
+        {/* A change of plan: do another day of the workout today */}
+        {isToday && (
+          <Pressable
+            onPress={openPicker}
+            style={({ pressed }) => [styles.trainButton, pressed && styles.setButtonPressed]}
+          >
+            <Text style={styles.trainText}>{t("workout.changeDay")}</Text>
+          </Pressable>
+        )}
+        </>
       ) : (
         setWorkoutButton
       )}

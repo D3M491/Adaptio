@@ -11,7 +11,7 @@ import NumberField from "../components/NumberField";
 import GlassBackground from "../components/GlassBackground";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { TAB_BAR_SPACE } from "../components/GlassTabBar";
-import { useT, entryName } from "../../i18n";
+import { useT, useLanguage, entryName, formatNumber } from "../../i18n";
 
 //A row with the starting and the current value of an entry, e.g. a max
 function EntryRow({ label, entry, unit, onChange, first }) {
@@ -60,6 +60,9 @@ export default function ProfileTab() {
   const insets = useSafeAreaInsets();
   const { profile, updatePersonal, updateWeight, updateEntry } = useProfile();
   const { personal, weight, maxes, measurements } = profile;
+  const { language, locale } = useLanguage();
+  //The last workouts done, the newest first
+  const recentSessions = (profile.sessions ?? []).slice(0, 5);
 
   //The name is saved when the field loses focus, an empty name is reverted
   const [name, setName] = useState(personal.name);
@@ -224,6 +227,44 @@ export default function ProfileTab() {
             />
           ))}
         </View>
+
+        <Text style={styles.sectionText}>{t("profile.history")}</Text>
+        <View style={styles.card}>
+          {recentSessions.length === 0 ? (
+            <Text style={styles.historyEmpty}>{t("profile.historyEmpty")}</Text>
+          ) : (
+            recentSessions.map((session, i) => (
+              <View
+                key={session.id}
+                style={[styles.sessionRow, i > 0 && styles.rowDivider]}
+              >
+                <View style={styles.sessionInfo}>
+                  <Text style={styles.sessionDay}>
+                    {t("workout.dayLabel", { n: session.day })}
+                  </Text>
+                  <Text style={styles.sessionName}>{session.dayName}</Text>
+                  <Text style={styles.sessionDate}>
+                    {new Date(`${session.date}T12:00:00`).toLocaleDateString(locale, {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </Text>
+                </View>
+                <View style={styles.sessionStats}>
+                  <Text style={styles.sessionStat}>
+                    {t("profile.sessionMinutes", {
+                      minutes: Math.max(1, Math.round(session.durationSec / 60)),
+                    })}
+                  </Text>
+                  <Text style={styles.sessionStat}>
+                    {formatNumber(session.volume, language)} kg
+                  </Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
       </ScrollView>
 
       <ConfirmDialog
@@ -292,6 +333,49 @@ const createStyles = (colors) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.tertiary,
+    },
+
+    historyEmpty: {
+      color: colors.secondaryDark,
+      padding: 16,
+    },
+
+    sessionRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+    },
+
+    sessionInfo: {
+      flex: 1,
+    },
+
+    sessionDay: {
+      color: colors.tertiary,
+      fontSize: 12,
+    },
+
+    sessionName: {
+      color: colors.secondary,
+      fontSize: 16,
+      marginTop: 2,
+    },
+
+    sessionDate: {
+      color: colors.secondaryDark,
+      fontSize: 13,
+      marginTop: 2,
+    },
+
+    sessionStats: {
+      alignItems: "flex-end",
+      gap: 2,
+    },
+
+    sessionStat: {
+      color: colors.secondaryDark,
+      fontSize: 13,
     },
 
     photoRemove: {

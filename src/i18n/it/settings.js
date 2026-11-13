@@ -17,4 +17,17 @@ export default {
   language: "Lingua",
   //The names of the languages are written in their own language, except the automatic choice
   languages: { auto: "Automatica", it: "Italiano", en: "English" },
+  privacySection: "PRIVACY E DATI",
+  privacyPolicy: "Informativa sulla privacy",
+  privacyPolicyNote: "Quali dati usa l'app e come vengono trattati",
+  deleteData: "Cancella tutti i miei dati",
+  deleteDataNote: "Profilo, allenamenti, foto e voti alle schede",
+  deleteTitle: "Cancellare tutti i dati?",
+  deleteMessage:
+    "Verranno eliminati profilo, storico degli allenamenti, foto, massimali, misure e i tuoi voti alle schede. L'operazione non si può annullare e l'app riparte dall'inizio.",
+  deleteConfirm: "Cancella",
+  deleteErrorTitle: "Cancellazione non riuscita",
+  deleteError:
+    "Non è stato possibile eliminare i voti online. Controlla la connessione e riprova: finché non va a buon fine non viene cancellato nulla.",
+  deleteRetry: "Riprova",
 };

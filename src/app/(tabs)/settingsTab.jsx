@@ -1,7 +1,13 @@
 import { View, Text, ScrollView, Pressable, Switch, StyleSheet } from "react-native";
+import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as WebBrowser from "expo-web-browser";
+import { ChevronRight } from "lucide-react-native";
 import { useColors, useStyles, glassCard, glassChip } from "../../theme";
 import { useProfile } from "../../data/ProfileContext";
+import { useRatings } from "../../data/RatingsContext";
+import { PRIVACY_URL } from "../../config";
+import ConfirmDialog from "../components/ConfirmDialog";
 import ProBadge from "../components/ProBadge";
 import GlassBackground from "../components/GlassBackground";
 import { TAB_BAR_SPACE } from "../components/GlassTabBar";
@@ -47,13 +53,17 @@ function SwitchRow({ title, description, value, onValueChange, first }) {
 }
 
 export default function Settings() {
+  const colors = useColors();
   const styles = useStyles(createStyles);
   const t = useT();
   const { locale } = useLanguage();
   //A plain View with the insets keeps the ScrollView bounded inside the tab pager
   const insets = useSafeAreaInsets();
-  const { profile, updateSetting, updateTrainingDays } = useProfile();
+  const { profile, updateSetting, updateTrainingDays, resetProfile } = useProfile();
+  const { deleteMyData } = useRatings();
   const { settings, training } = profile;
+  //Which confirm dialog is open: "delete", "error" or null
+  const [dialog, setDialog] = useState(null);
 
   const weekdays = training.weekdays ?? [];
 
@@ -74,6 +84,20 @@ export default function Settings() {
     const wrapped = ((total % 1440) + 1440) % 1440;
     updateSetting("reminderHour", Math.floor(wrapped / 60));
     updateSetting("reminderMinute", wrapped % 60);
+  }
+
+  //Deletes the votes online first: if that fails nothing is deleted and the person can retry.
+  //Then the data on the phone, which brings back the first-launch form
+  async function deleteAll() {
+    setDialog(null);
+    try {
+      await deleteMyData();
+    } catch {
+      //The dialog is still closing: wait for it before opening the next one
+      setTimeout(() => setDialog("error"), 400);
+      return;
+    }
+    await resetProfile();
   }
 
   return (
@@ -216,7 +240,51 @@ export default function Settings() {
             </View>
           </View>
         </View>
+
+        <Text style={styles.sectionText}>{t("settings.privacySection")}</Text>
+        <View style={styles.card}>
+          <Pressable
+            onPress={() => WebBrowser.openBrowserAsync(PRIVACY_URL).catch(() => {})}
+            style={styles.row}
+          >
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>{t("settings.privacyPolicy")}</Text>
+              <Text style={styles.rowDescription}>
+                {t("settings.privacyPolicyNote")}
+              </Text>
+            </View>
+            <ChevronRight size={20} color={colors.secondaryDark} />
+          </Pressable>
+          <Pressable
+            onPress={() => setDialog("delete")}
+            style={[styles.row, styles.rowDivider]}
+          >
+            <View style={styles.rowText}>
+              <Text style={styles.deleteTitle}>{t("settings.deleteData")}</Text>
+              <Text style={styles.rowDescription}>
+                {t("settings.deleteDataNote")}
+              </Text>
+            </View>
+          </Pressable>
+        </View>
       </ScrollView>
+
+      <ConfirmDialog
+        visible={dialog === "delete"}
+        title={t("settings.deleteTitle")}
+        message={t("settings.deleteMessage")}
+        confirmText={t("settings.deleteConfirm")}
+        onConfirm={deleteAll}
+        onCancel={() => setDialog(null)}
+      />
+      <ConfirmDialog
+        visible={dialog === "error"}
+        title={t("settings.deleteErrorTitle")}
+        message={t("settings.deleteError")}
+        confirmText={t("settings.deleteRetry")}
+        onConfirm={deleteAll}
+        onCancel={() => setDialog(null)}
+      />
     </View>
   );
 }
@@ -275,6 +343,11 @@ const createStyles = (colors) =>
 
     rowTitle: {
       color: colors.secondary,
+      fontSize: 16,
+    },
+
+    deleteTitle: {
+      color: colors.tertiary,
       fontSize: 16,
     },
 

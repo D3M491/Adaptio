@@ -3,6 +3,7 @@ import { Crown } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useColors, useStyles } from "../../theme";
 import { useT } from "../../i18n";
+import { PRO_ENABLED } from "../../config";
 
 //Button to try the PRO plan, opens the PRO page
 export default function ProBadge() {
@@ -10,6 +11,8 @@ export default function ProBadge() {
   const styles = useStyles(createStyles);
   const t = useT();
   const router = useRouter();
+
+  if (!PRO_ENABLED) return null;
 
   return (
     <Pressable

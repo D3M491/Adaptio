@@ -16,6 +16,9 @@ const progress = {
   lastLoads: {},
   //The workouts finished, by day: { "2026-11-02": { workoutId: "full-body", day: 2 } }
   completedWorkouts: {},
+  //Every finished workout, the newest first: { id, date, workoutId, workoutName, day, dayName,
+  //durationSec, doneExercises, totalExercises, volume, exercises: [{ name, note, sets: [{ weight, reps }] }] }
+  sessions: [],
   // Answers of the first-launch form, used later to suggest workout plans:
   // goal is "mass" | "fat" | "strength", level "beginner" | "intermediate" | "advanced",
   // place "gym" | "home" | "both". weekdays are the days chosen to train: 0 = Sunday ... 6 = Saturday

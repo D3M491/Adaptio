@@ -16,6 +16,7 @@ export default {
   filterAll: "Tutti i giorni",
   filterEmpty: "Nessun workout con questi filtri",
   trainToday: "Allenati oggi",
+  changeDay: "Cambia workout",
   pickTitle: "Scegli il workout",
   pickDay: "Cosa facciamo oggi?",
   suggested: "Suggerito",

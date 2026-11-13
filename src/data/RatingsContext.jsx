@@ -65,9 +65,32 @@ export function RatingsProvider({ children }) {
     await refresh();
   }
 
+  //Deletes the anonymous user and its votes from the database (see supabase/delete_account.sql).
+  //Throws if it can't be done, so nothing is half deleted. Without a user there is nothing to do
+  async function deleteMyData() {
+    if (!supabase) return;
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+
+    const { error } = await supabase.rpc("delete_my_account");
+    if (error) throw error;
+
+    //The session no longer exists on the server, only the copy on the phone is removed
+    await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+    setMyVotes({});
+    await refresh().catch(() => {});
+  }
+
   return (
     <RatingsContext.Provider
-      value={{ summaries, myVotes, available: supabase !== null, rate, refresh }}
+      value={{
+        summaries,
+        myVotes,
+        available: supabase !== null,
+        rate,
+        refresh,
+        deleteMyData,
+      }}
     >
       {children}
     </RatingsContext.Provider>
